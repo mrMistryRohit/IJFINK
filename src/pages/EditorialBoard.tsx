@@ -31,8 +31,8 @@ const editorInChief = {
 const assistantEditors = [
   {
     name: "Dr. Koushik Mukherjee, PhD",
-    role: "Assistant Editor",
-    department: "Assistant Professor, HOD | Dept. of Microbiology",
+    role: "Assistant Professor, HOD",
+    department: "Dept. of Microbiology",
     institution: "Kalyani Mahavidyalaya, WB, India",
     image: asstEditorImg,
     bio: "Dr. Koushik Mukherjee, PhD, is Assistant Professor & HOD of Microbiology at Kalyani Mahavidyalaya, WB. He also serves as Assistant Editor, blending academic excellence with editorial expertise in microbiological sciences.",
@@ -143,10 +143,10 @@ const editorialMembers = [
     bio: "Dr. Harekrishna Jana, PhD, is Assistant Professor and HOD of Microbiology at Raja Narendralal Khan Women's College, WB. He empowers women students through quality microbiological education.",
     specializations: ["Medical Microbiology", "Academic Mentorship"],
   },
-  {
+  { 
     name: "Dr. Koushik Mukherjee, PhD",
-    role: "Assistant Editor",
-    department: "Assistant Professor, HOD | Dept. of Microbiology",
+    role: "Assistant Professor, HOD",
+    department: "Dept. of Microbiology",
     institution: "Kalyani Mahavidyalaya, WB, India",
     image: asstEditorImg,
     bio: "Dr. Koushik Mukherjee, PhD, is Assistant Professor & HOD of Microbiology at Kalyani Mahavidyalaya, WB. He also serves as Assistant Editor, blending academic excellence with editorial expertise in microbiological sciences.",
