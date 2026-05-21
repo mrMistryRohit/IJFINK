@@ -31,7 +31,7 @@ const editorInChief = {
 const assistantEditors = [
   {
     name: "Dr. Koushik Mukherjee, PhD",
-    role: "Assistant Professor",
+    role: "Assistant Editor",
     department: "Assistant Professor, HOD | Dept. of Microbiology",
     institution: "Kalyani Mahavidyalaya, WB, India",
     image: asstEditorImg,
@@ -145,7 +145,7 @@ const editorialMembers = [
   },
   {
     name: "Dr. Koushik Mukherjee, PhD",
-    role: "Assistant Professor",
+    role: "Assistant Editor",
     department: "Assistant Professor, HOD | Dept. of Microbiology",
     institution: "Kalyani Mahavidyalaya, WB, India",
     image: asstEditorImg,
