@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=DM+Sans:wght@400;500;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 99%;
+    --foreground: 215 35% 10%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 35% 10%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 35% 10%;
+
+    --primary: 168 72% 36%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 168 40% 94%;
+    --secondary-foreground: 168 72% 26%;
+
+    --muted: 210 20% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 38 95% 54%;
+    --accent-foreground: 38 90% 15%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 210 20% 90%;
+    --input: 210 20% 90%;
+    --ring: 168 72% 36%;
+
+    --radius: 0.75rem;
+
+    /* Dark navy for hero sections */
+    --navy: 220 55% 10%;
+    --navy-mid: 220 45% 14%;
+
+    --hero-overlay: linear-gradient(135deg, hsla(220,55%,10%,0.88), hsla(168,60%,16%,0.80));
+    --surface-elevated: 0 8px 32px -4px hsla(168,72%,36%,0.14), 0 2px 8px -2px hsla(168,72%,36%,0.08);
+    --surface-card: 0 2px 16px -2px hsla(215,35%,10%,0.07);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(168, 72%, 32%), hsl(200, 80%, 38%));
+  }
+  .text-gradient-gold {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, hsl(38, 95%, 50%), hsl(30, 95%, 55%));
+  }
+  .hero-gradient {
+    background: var(--hero-overlay);
+  }
+  .section-padding {
+    @apply py-20 md:py-28 px-4;
+  }
+  .card-shadow {
+    box-shadow: var(--surface-card);
+  }
+  .elevated-shadow {
+    box-shadow: var(--surface-elevated);
+  }
+  .navy-bg {
+    background: hsl(var(--navy));
+  }
+  .navy-mid-bg {
+    background: hsl(var(--navy-mid));
+  }
+}
