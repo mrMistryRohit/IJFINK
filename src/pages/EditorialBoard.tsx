@@ -53,6 +53,7 @@ const reviewers = [
   {
     name: "Dr. Avik Acharya Chowdhury, PhD",
     role: "Senior Reviewer",
+    designation: "Associate Professor",
     department: "Associate Professor | Dept. of Biosciences",
     institution: "JIS University, WB, India",
     image: AvikImg,
@@ -62,6 +63,7 @@ const reviewers = [
   {
     name: "Dr. Soumyabrata Roy, PhD",
     role: "Senior Reviewer",
+    designation: "Assistant Professor",
     department: "Assistant  Professor | Dept. of Biosciences",
     institution: "JIS University, WB, India",
     image: SoumyabrataRoyImg,
@@ -71,6 +73,7 @@ const reviewers = [
   {
     name: "Dr. Sekhar Pal, PhD",
     role: "Peer Reviewer",
+    designation: "Assistant Professor",
     department: "Assistant Professor | Dept. of Microbiology",
     institution: "RMKVCC, WB, India",
     image: SekharPalImg,
@@ -80,6 +83,7 @@ const reviewers = [
   {
     name: "Dr. Pieu Naskar, PhD",
     role: "Peer Reviewer",
+    designation: "Assistant Professor, HOD",
     department: "Assistant  Professor, HOD | Dept. of Microbiology",
     institution: "Kulti College, WB, India",
     image: PieuNaskarImg,
@@ -384,7 +388,7 @@ const EditorialBoard = () => {
                     className="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-4 border-primary/25 ring-4 ring-emerald-500/10"
                   />
                   <h3 className="text-base font-bold text-foreground">{member.name}</h3>
-                  {/* <p className="text-sm font-medium text-primary mt-1">{member.role}</p> */}
+                  <p className="text-sm font-medium text-primary mt-1">{member.designation}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{member.institution}</p>
                 </div>
                 <div className="p-6">
