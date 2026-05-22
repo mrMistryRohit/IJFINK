@@ -226,7 +226,7 @@ const EditorialBoard = () => {
                 </div>
               </div>
               <div className="md:col-span-2 p-8">
-                <p className="text-muted-foreground leading-relaxed mb-6">{editorInChief.bio}</p>
+                <p className="text-muted-foreground leading-relaxed mb-6 text-justify">{editorInChief.bio}</p>
                 <h4 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
                   <GraduationCap size={16} className="text-primary" /> Areas of Expertise
                 </h4>
@@ -284,7 +284,7 @@ const EditorialBoard = () => {
                   <p className="text-xs text-muted-foreground mt-0.5">{member.institution}</p>
                 </div>
                 <div className="p-6">
-                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">{member.bio}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-4 text-justify">{member.bio}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {member.specializations.map((spec) => (
                       <span key={spec} className="bg-secondary text-secondary-foreground text-[11px] px-2.5 py-1 rounded-full font-medium">
@@ -392,7 +392,7 @@ const EditorialBoard = () => {
                   <p className="text-xs text-muted-foreground mt-0.5">{member.institution}</p>
                 </div>
                 <div className="p-6">
-                  <p className="text-sm text-muted-foreground leading-relaxed mb-4">{member.bio}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed mb-4 text-justify">{member.bio}</p>
                   <div className="flex flex-wrap gap-1.5">
                     {member.specializations.map((spec) => (
                       <span key={spec} className="bg-secondary text-secondary-foreground text-[11px] px-2.5 py-1 rounded-full font-medium">
@@ -407,7 +407,7 @@ const EditorialBoard = () => {
         </div>
       </section>
 
-      {/* Editorial Members */}
+      {/* Editorial Members */>
       {/* <section className="py-12 px-4 bg-muted/50">
         <div className="container mx-auto">
           <motion.div
