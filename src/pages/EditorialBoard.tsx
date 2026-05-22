@@ -57,7 +57,7 @@ const reviewers = [
     department: "Associate Professor | Dept. of Biosciences",
     institution: "JIS University, WB, India",
     image: AvikImg,
-    bio: "Dr. Avik Acharya Chowdhury, PhD, is Associate Professor of Biosciences at JIS University, WB, and serves as a Senior Reviewer.",
+    bio: "Dr. Avik Acharya Chowdhury is an Associate Professor in the Department of Biosciences at JIS University, Kolkata, India. His research interests encompass cancer biology, autophagy-mediated signaling, tumor microenvironment, and molecular therapeutics targeting leukemia and breast cancer. He has contributed to the fields of molecular oncology and translational biosciences through publications in reputed international journals and scholarly book chapters.",
     specializations: ["Biosciences", "Molecular Bioscience Research", "Molecular Bioscience Research"],
   },
   {
