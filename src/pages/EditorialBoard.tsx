@@ -407,7 +407,7 @@ const EditorialBoard = () => {
         </div>
       </section>
 
-      {/* Editorial Members */>
+      {/* Editorial Members */}
       {/* <section className="py-12 px-4 bg-muted/50">
         <div className="container mx-auto">
           <motion.div
