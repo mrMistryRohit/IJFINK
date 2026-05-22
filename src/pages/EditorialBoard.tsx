@@ -8,7 +8,7 @@ import asstEditorImg from "@/assets/Editorial Board Member/Koushik Mukherjee (As
 import AvikImg from "@/assets/Editorial Board Member/Avik Chowdhury.png";
 import SoumyabrataRoyImg from "@/assets/Editorial Board Member/Soumyabrata Roy.jpg.jpeg";
 import SekharPalImg from "@/assets/Editorial Board Member/sekhar pal.jpg.jpeg";
-import PieuNaskarImg from "@/assets/Editorial Board Member/piu naskar.png";
+import PieuNaskarImg from "@/assets/Editorial Board Member/piu naskar.jpeg";
 import DurgaPrasadBarikImg from "@/assets/Editorial Board Member/Durga prasad barik.jpg.jpeg";
 import ChhandaMallickMukherjeeImg from "@/assets/Editorial Board Member/chanda mallick.jpg.jpeg";
 import AmritaBanerjeeImg from "@/assets/Editorial Board Member/amrita banerjee.jpg.jpeg";
