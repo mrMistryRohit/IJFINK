@@ -45,7 +45,7 @@ const sidebarItems: Array<{ id: EditorTab; label: string; icon: typeof BarChart3
 
 const editorProfile = {
   name: "Dr. Pradeep Kumar Das",
-  email: "chief.editor@inkyourjournal.com",
+  email: "chief.editor@ijink.com",
   role: "Chief Editor",
   section: "Life Science and Biotechnology",
   lastLogin: "21 May 2026, 05:20 PM",
@@ -217,7 +217,7 @@ const Editor = () => {
               </div>
               <div>
                 <h1 className="font-extrabold">Editor Panel</h1>
-                <p className="text-xs text-slate-500">Ink Your Journal</p>
+                <p className="text-xs text-slate-500">International Journal for Invention of Nobel Knowledge</p>
               </div>
             </div>
             <div className="flex gap-2 overflow-x-auto">

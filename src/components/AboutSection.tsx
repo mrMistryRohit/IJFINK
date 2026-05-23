@@ -23,7 +23,7 @@ const AboutSection = () => {
             About Us
           </span>
           <h2 className="text-3xl md:text-5xl font-extrabold text-foreground mb-6">
-            Welcome to Ink Your Journal
+            Welcome to International Journal for Invention of Nobel Knowledge
           </h2>
           <p className="text-muted-foreground text-lg leading-relaxed">
             We provide innovative research article publication services in the field of Biological Sciences. Our platform connects researchers worldwide, ensuring rigorous peer review and global accessibility

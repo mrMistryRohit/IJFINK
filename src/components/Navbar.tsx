@@ -41,7 +41,11 @@ const Navbar = () => {
     >
       <div className="container mx-auto flex items-center justify-between h-[72px] px-4">
         <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-          <img src={logo} alt="Ink Your Journal" className="h-9 w-auto max-w-[160px] object-contain" />
+          <img
+            src={logo}
+            alt="International Journal for Invention of Nobel Knowledge"
+            className="block h-12 w-auto max-w-[180px] object-contain sm:h-14 sm:max-w-[260px] lg:h-[56px] lg:max-w-[280px]"
+          />
         </Link>
 
         {/* Desktop */}

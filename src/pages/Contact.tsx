@@ -15,7 +15,7 @@ const contactReasons = [
 ];
 
 const contactInfo = [
-  { icon: Mail, label: "Email", value: "contact@inkyourjournal.com", sub: "We reply within 24–48 hours" },
+  { icon: Mail, label: "Email", value: "contact@ijink.com", sub: "We reply within 24–48 hours" },
   { icon: Phone, label: "Phone", value: "+91 83370 75844", sub: "Available for inquiries" },
   { icon: MapPin, label: "Address", value: "5th Floor, & GP, Regus Campus", sub: "RDB Boulevard, Plot K-1, EP Block, Sector V, Kolkata, West Bengal 700091" },
   { icon: Clock, label: "Office Hours", value: "24/7", sub: "Always Available" },

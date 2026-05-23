@@ -52,7 +52,7 @@ const Login = () => {
                 <h1 className="mb-5 max-w-xl text-4xl font-extrabold leading-[0.95] text-white md:text-6xl">
                   Login to{" "}
                   <span className="bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
-                    Ink Your Journal
+                    IJINK - International Journal for Invention of Nobel Knowledge
                   </span>
                 </h1>
                 <p className="max-w-lg text-lg leading-relaxed text-white/70">
