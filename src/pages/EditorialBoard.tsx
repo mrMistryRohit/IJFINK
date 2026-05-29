@@ -108,7 +108,7 @@ const editorialMembers = [
     department: "Department of Bio-Medical Laboratory Science & Management",
     institution: "Vidyasagar University, WB., India",
     image: ChhandaMallickMukherjeeImg,
-    bio: "Dr. Chhanda Mallick Mukherjee, PhD, serves as Assistant Professor in Bio-Medical Laboratory Science & Management at Vidyasagar University, WB. She contributes significantly to biomedical education and diagnostic research.",
+    bio: "Dr. Chhanda Mallick Mukherjee is an Assistant Professor at Vidyasagar University and a distinguished researcher in Clinical Nutrition, Endocrinology, Reproductive Physiology, and nanotechnology-based therapeutics. She has an extensive record of peer-reviewed publications, funded research projects, and interdisciplinary biomedical work, and has successfully guided Ph.D. and M.Phil. scholars. She is also a co-inventor of an Indian patent on probiotic-derived antimicrobial peptides, contributing to innovative, translational, and evidence-based approaches to improving human health and well-being.",
     specializations: ["Biomedical Science", "Diagnostic Management", "Clinical Lab Science"],
   },
   {
