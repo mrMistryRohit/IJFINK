@@ -52,11 +52,11 @@ const Login = () => {
                 <h1 className="mb-5 max-w-xl text-4xl font-extrabold leading-[0.95] text-white md:text-6xl">
                   Login to{" "}
                   <span className="bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
-                    IJINK - International Journal for Invention of Nobel Knowledge
+                    IJFINK
                   </span>
                 </h1>
                 <p className="max-w-lg text-lg leading-relaxed text-white/70">
-                  Role-based access for authors, readers, reviewers, editors and administrators.
+                  Role-based access for authors, readers, reviewers, editors and administrators
                 </p>
                 <div className="mt-8 grid max-w-lg grid-cols-2 gap-3">
                   {["Editorial workflow", "Reviewer access", "Publishing tools", "User dashboard"].map((item) => (

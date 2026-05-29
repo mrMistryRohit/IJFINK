@@ -36,9 +36,9 @@ const ContactSection = () => {
         <div className="grid lg:grid-cols-5 gap-12 max-w-5xl mx-auto">
           <div className="lg:col-span-2 space-y-6">
             {[
-              { icon: Mail, label: "Email", value: "contact@ijink.com" },
+              { icon: Mail, label: "Email", value: "contact@ijfink.com" },
               { icon: Phone, label: "Phone", value: "+91 83370 75844" },
-              { icon: MapPin, label: "Address", value: "5th Floor, & GP, Regus Campus, RDB Boulevard, Plot K-1, EP Block, Sector V, Kolkata, West Bengal 700091" },
+              { icon: MapPin, label: "Address", value: "RDB Boulevard, 5th Floor, Trimplin, Regus Campus, EP and GP block, Plot K-1, Sector V, Kolkata-700091 West Bengal" },
             ].map((item) => (
               <div key={item.label} className="flex items-start gap-4">
                 <div className="w-11 h-11 rounded-lg bg-secondary flex items-center justify-center flex-shrink-0">

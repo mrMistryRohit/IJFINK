@@ -11,7 +11,7 @@ const quickLinks = [
 ];
 
 const researchAreas = ["Healthcare", "Pharmacy", "Biochemistry", "Biotechnology", "Neuroscience", "Environmental Biology"];
-const officeAddress = "5th Floor, & GP, Regus Campus, RDB Boulevard, Plot K-1, EP Block, Sector V, Kolkata, West Bengal 700091";
+const officeAddress = "RDB Boulevard, 5th Floor, Trimplin, Regus Campus, EP and GP block, Plot K-1, Sector V, Kolkata-700091 West Bengal";
 const officeMapUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(officeAddress)}`;
 
 // Neuron Network Component
@@ -130,7 +130,7 @@ const Footer = () => {
                 <Mail size={16} className="text-emerald-400 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="text-xs text-white/40 uppercase tracking-wide font-bold mb-0.5">Email</p>
-                  <a href="mailto:contact@ijink.com" className="text-sm text-white/70 hover:text-emerald-400 transition-colors">contact@ijink.com</a>
+                  <a href="mailto:contact@IJFINK.com" className="text-sm text-white/70 hover:text-emerald-400 transition-colors">contact@ijfink.com</a>
                 </div>
               </li>
             </ul>
@@ -141,10 +141,23 @@ const Footer = () => {
           <p className="text-sm text-white/40">
             © {new Date().getFullYear()} International Journal for Invention of Nobel Knowledge — Biological Sciences Journal. All rights reserved.
           </p>
-          <div className="flex gap-4">
-            {["Privacy Policy", "Terms of Use", "Ethics Policy"].map((item) => (
-              <a key={item} href="#" className="text-sm text-white/40 hover:text-emerald-400 transition-colors">{item}</a>
-            ))}
+          <div className="flex items-center gap-6">
+            <p className="text-sm text-white/50">
+              An Initiative by{" "}
+              <a
+                href="https://www.trimplin.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-emerald-400 hover:text-emerald-300 transition-colors"
+              >
+                Trimplin
+              </a>
+            </p>
+            <div className="flex gap-4">
+              {["Privacy Policy", "Terms of Use", "Ethics Policy"].map((item) => (
+                <a key={item} href="#" className="text-sm text-white/40 hover:text-emerald-400 transition-colors">{item}</a>
+              ))}
+            </div>
           </div>
         </div>
       </div>

@@ -50,65 +50,57 @@ const Register = () => {
                     <span className="text-xs font-bold uppercase tracking-widest text-primary">User Registration</span>
                     <h1 className="mt-2 text-2xl font-extrabold leading-tight text-slate-950 md:text-3xl">Create Your User Account</h1>
                     <p className="mt-1 text-sm leading-relaxed text-slate-500">
-                      Register as a user to read journal content and publish your research.
+                      Register as a user to read journal content and publish your research
                     </p>
                   </div>
 
                   <form className="space-y-3">
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
-                        <label className="mb-1 block text-sm font-bold text-slate-700">First Name</label>
+                        <label className="mb-1 block text-sm font-bold text-slate-700">First Name*</label>
                         <div className="relative">
                           <UserRound className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
                           <input
                             type="text"
                             placeholder="First name"
                             className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
+                            required
                           />
                         </div>
                       </div>
                       <div>
-                        <label className="mb-1 block text-sm font-bold text-slate-700">Last Name</label>
+                        <label className="mb-1 block text-sm font-bold text-slate-700">Last Name*</label>
                         <input
                           type="text"
                           placeholder="Last name"
-                          className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="mb-1 block text-sm font-bold text-slate-700">Email Address</label>
-                      <div className="relative">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
-                        <input
-                          type="email"
-                          placeholder="name@institution.edu"
-                          className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
+                          className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
+                          required
                         />
                       </div>
                     </div>
 
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
-                        <label className="mb-1 block text-sm font-bold text-slate-700">Phone Number</label>
+                        <label className="mb-1 block text-sm font-bold text-slate-700">Email Address*</label>
+                        <div className="relative">
+                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
+                          <input
+                            type="email"
+                            placeholder="name@institution.edu"
+                            className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-sm font-bold text-slate-700">Phone Number*</label>
                         <div className="relative">
                           <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
                           <input
                             type="tel"
                             placeholder="+91 00000 00000"
                             className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
-                          />
-                        </div>
-                      </div>
-                      <div>
-                        <label className="mb-1 block text-sm font-bold text-slate-700">Institution</label>
-                        <div className="relative">
-                          <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
-                          <input
-                            type="text"
-                            placeholder="University / Organization"
-                            className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
+                            required
                           />
                         </div>
                       </div>
@@ -116,29 +108,58 @@ const Register = () => {
 
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
-                        <label className="mb-1 block text-sm font-bold text-slate-700">Password</label>
+                        <label className="mb-1 block text-sm font-bold text-slate-700">Institution*</label>
+                        <div className="relative">
+                          <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
+                          <input
+                            type="text"
+                            placeholder="University / Organization"
+                            className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <label className="mb-1 block text-sm font-bold text-slate-700">Orchid ID*</label>
+                        <div className="relative">
+                          <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
+                          <input
+                            type="oid"
+                            placeholder="0000-0000-0000-0000"
+                            className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <label className="mb-1 block text-sm font-bold text-slate-700">Password*</label>
                         <div className="relative">
                           <LockKeyhole className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
                           <input
                             type="password"
                             placeholder="Create password"
                             className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
+                            required
                           />
                         </div>
                       </div>
                       <div>
-                        <label className="mb-1 block text-sm font-bold text-slate-700">Confirm Password</label>
+                        <label className="mb-1 block text-sm font-bold text-slate-700">Confirm Password*</label>
                         <input
                           type="password"
                           placeholder="Confirm password"
-                          className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
+                          className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
+                          required
                         />
                       </div>
                     </div>
 
                     <label className="flex items-start gap-3 rounded-xl bg-slate-50 p-3 text-sm leading-relaxed text-slate-600">
                       <input type="checkbox" className="mt-0.5 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" />
-                      <span>I confirm that the information provided is accurate and I want to register as a user.</span>
+                      <span>I confirm that the information provided is accurate and I want to register as a user</span>
                     </label>
 
                     <button
@@ -167,13 +188,13 @@ const Register = () => {
                   <BookOpenCheck size={13} /> Reader + Publisher Access
                 </span>
                 <h2 className="mb-5 max-w-xl text-4xl font-extrabold leading-[0.95] text-white md:text-6xl">
-                  Join the{" "}
+                  Join {" "}
                   <span className="bg-gradient-to-r from-emerald-400 to-teal-300 bg-clip-text text-transparent">
-                    Research Community
+                    IJFINK Research Community
                   </span>
                 </h2>
                 <p className="max-w-lg text-lg leading-relaxed text-white/70">
-                  A clean user registration page for researchers, readers and authors who want access to the publishing portal.
+                  A clean user registration page for researchers, readers and authors who want access to the publishing portal
                 </p>
 
                 <div className="mt-8 grid gap-3 sm:grid-cols-2">
@@ -191,7 +212,7 @@ const Register = () => {
                   </div>
                   <h3 className="font-bold text-white">Built for authors</h3>
                   <p className="mt-1 text-sm leading-relaxed text-white/60">
-                    After registration, users can be connected to manuscript submission and article access workflows when you are ready.
+                    After registration, users can be connected to manuscript submission and article access workflows when you are ready
                   </p>
                 </div>
               </motion.div>

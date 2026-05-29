@@ -6,6 +6,7 @@ import {
   ClipboardList,
   Eye,
   FileText,
+  KeyRound,
   LogOut,
   Mail,
   MessageSquareText,
@@ -13,10 +14,23 @@ import {
   ShieldCheck,
   UserCog,
   Users,
+  X,
 } from "lucide-react";
 
 type AdminTab = "dashboard" | "users" | "queries" | "profile";
 type UserRole = "User" | "Reviewer" | "Editor" | "Admin";
+
+type ContactQuery = {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  institution: string;
+  subject: string;
+  status: string;
+  date: string;
+  message: string;
+};
 
 const sidebarItems: Array<{ id: AdminTab; label: string; icon: typeof BarChart3 }> = [
   { id: "dashboard", label: "Admin Dashboard", icon: BarChart3 },
@@ -29,21 +43,65 @@ const initialUsers = [
   { id: 1, name: "Dr. Sarah Mitchell", email: "sarah.mitchell@journal.org", role: "Editor" as UserRole, status: "Active" },
   { id: 2, name: "Prof. Rakesh Sen", email: "rakesh.sen@review.edu", role: "Reviewer" as UserRole, status: "Active" },
   { id: 3, name: "Ananya Das", email: "ananya.das@research.edu", role: "User" as UserRole, status: "Inactive" },
-  { id: 4, name: "Admin Operations", email: "admin@ijink.com", role: "Admin" as UserRole, status: "Active" },
+  { id: 4, name: "Admin Operations", email: "admin@ijfink.com", role: "Admin" as UserRole, status: "Active" },
   { id: 5, name: "Dr. Meera Kapoor", email: "meera.kapoor@journal.org", role: "Editor" as UserRole, status: "Active" },
   { id: 6, name: "Rahul Verma", email: "rahul.verma@institution.edu", role: "User" as UserRole, status: "Active" },
 ];
 
-const contactQueries = [
-  { id: "CQ-1042", name: "Arjun Patel", email: "arjun.patel@bio.edu", subject: "Submission timeline", category: "Publishing", status: "New", date: "21 May 2026" },
-  { id: "CQ-1041", name: "Dr. Lin Wei", email: "lin.wei@lab.org", subject: "Reviewer invitation", category: "Editorial", status: "In Review", date: "20 May 2026" },
-  { id: "CQ-1040", name: "Priya Shah", email: "priya.shah@pharma.edu", subject: "Article processing fee", category: "Billing", status: "Resolved", date: "19 May 2026" },
-  { id: "CQ-1039", name: "Michael Brown", email: "m.brown@research.net", subject: "Indexing information", category: "Journal", status: "Resolved", date: "18 May 2026" },
+const contactQueries: ContactQuery[] = [
+  {
+    id: "CQ-1042",
+    firstName: "Arjun",
+    lastName: "Patel",
+    email: "arjun.patel@bio.edu",
+    institution: "University of Calcutta",
+    subject: "Manuscript Submission",
+    status: "New",
+    date: "21 May 2026",
+    message:
+      "I would like to know the expected timeline after submitting an original research paper. Please share the next steps for manuscript screening and editor assignment.",
+  },
+  {
+    id: "CQ-1041",
+    firstName: "Lin",
+    lastName: "Wei",
+    email: "lin.wei@lab.org",
+    institution: "Molecular Biology Research Lab",
+    subject: "Editorial Enquiry",
+    status: "In Review",
+    date: "20 May 2026",
+    message:
+      "I received a reviewer invitation and want to confirm the scope, expected review format and final submission date for the reviewer comments.",
+  },
+  {
+    id: "CQ-1040",
+    firstName: "Priya",
+    lastName: "Shah",
+    email: "priya.shah@pharma.edu",
+    institution: "National Pharmaceutical Institute",
+    subject: "Publication Fees / APC",
+    status: "Resolved",
+    date: "19 May 2026",
+    message:
+      "Please provide the article processing charge details, payment schedule and whether any waiver is available for early career researchers.",
+  },
+  {
+    id: "CQ-1039",
+    firstName: "Michael",
+    lastName: "Brown",
+    email: "m.brown@research.net",
+    institution: "Independent Research Network",
+    subject: "Other",
+    status: "Resolved",
+    date: "18 May 2026",
+    message:
+      "I am looking for indexing information and citation database coverage for published articles in the journal.",
+  },
 ];
 
 const adminProfile = {
   name: "Admin Operations",
-  email: "admin@ijink.com",
+  email: "admin@IJFINK.com",
   role: "Super Admin",
   department: "Journal Administration",
   lastLogin: "21 May 2026, 04:10 PM",
@@ -53,7 +111,15 @@ const Admin = () => {
   const [activeTab, setActiveTab] = useState<AdminTab>("dashboard");
   const [users, setUsers] = useState(initialUsers);
   const [showCreateUser, setShowCreateUser] = useState(false);
-  const [newUser, setNewUser] = useState({ name: "", email: "", role: "Reviewer" as Exclude<UserRole, "User"> });
+  const [selectedQuery, setSelectedQuery] = useState<ContactQuery | null>(null);
+  const [createUserError, setCreateUserError] = useState("");
+  const [newUser, setNewUser] = useState({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    role: "Reviewer" as Exclude<UserRole, "User">,
+  });
 
   const roleCounts = useMemo(
     () =>
@@ -85,7 +151,15 @@ const Admin = () => {
   };
 
   const createPrivilegedUser = () => {
-    if (!newUser.name.trim() || !newUser.email.trim()) return;
+    if (!newUser.name.trim() || !newUser.email.trim() || !newUser.password || !newUser.confirmPassword) {
+      setCreateUserError("Complete all fields before creating the user.");
+      return;
+    }
+
+    if (newUser.password !== newUser.confirmPassword) {
+      setCreateUserError("Password and confirm password must match.");
+      return;
+    }
 
     setUsers((currentUsers) => [
       ...currentUsers,
@@ -97,7 +171,8 @@ const Admin = () => {
         status: "Active",
       },
     ]);
-    setNewUser({ name: "", email: "", role: "Reviewer" });
+    setNewUser({ name: "", email: "", password: "", confirmPassword: "", role: "Reviewer" });
+    setCreateUserError("");
     setShowCreateUser(false);
   };
 
@@ -131,10 +206,12 @@ const Admin = () => {
             ))}
           </nav>
 
-          <div className="mt-auto rounded-2xl border border-white/10 bg-white/[0.06] p-4 text-sm text-white/60">
-            <p className="font-bold text-white">Logged in as</p>
-            <p>{adminProfile.email}</p>
-          </div>
+          <button
+            type="button"
+            className="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-slate-800"
+          >
+            <LogOut size={17} /> Logout
+          </button>
         </aside>
 
         <main className="min-w-0 flex-1 lg:pl-72">
@@ -243,45 +320,15 @@ const Admin = () => {
                   </div>
                   <button
                     type="button"
-                    onClick={() => setShowCreateUser((value) => !value)}
+                    onClick={() => {
+                      setCreateUserError("");
+                      setShowCreateUser(true);
+                    }}
                     className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-primary/90"
                   >
                     <Plus size={17} /> Create Admin, Editor or Reviewer
                   </button>
                 </div>
-
-                {showCreateUser && (
-                  <div className="mb-5 grid gap-3 rounded-2xl border border-primary/15 bg-white p-4 shadow-sm md:grid-cols-[1fr_1fr_180px_auto]">
-                    <input
-                      value={newUser.name}
-                      onChange={(event) => setNewUser((value) => ({ ...value, name: event.target.value }))}
-                      placeholder="Full name"
-                      className="h-11 rounded-xl border border-slate-200 px-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    />
-                    <input
-                      value={newUser.email}
-                      onChange={(event) => setNewUser((value) => ({ ...value, email: event.target.value }))}
-                      placeholder="Email address"
-                      className="h-11 rounded-xl border border-slate-200 px-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    />
-                    <select
-                      value={newUser.role}
-                      onChange={(event) => setNewUser((value) => ({ ...value, role: event.target.value as Exclude<UserRole, "User"> }))}
-                      className="h-11 rounded-xl border border-slate-200 px-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                    >
-                      <option>Admin</option>
-                      <option>Editor</option>
-                      <option>Reviewer</option>
-                    </select>
-                    <button
-                      type="button"
-                      onClick={createPrivilegedUser}
-                      className="h-11 rounded-xl bg-slate-950 px-5 text-sm font-bold text-white transition-colors hover:bg-slate-800"
-                    >
-                      Add User
-                    </button>
-                  </div>
-                )}
 
                 <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                   <div className="overflow-x-auto">
@@ -340,30 +387,42 @@ const Admin = () => {
 
                 <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
                   <div className="overflow-x-auto">
-                    <table className="w-full min-w-[820px] text-left text-sm">
+                    <table className="w-full min-w-[1120px] text-left text-sm">
                       <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
                         <tr>
                           <th className="px-5 py-4">Query ID</th>
-                          <th className="px-5 py-4">Name</th>
-                          <th className="px-5 py-4">Email</th>
+                          <th className="px-5 py-4">First Name</th>
+                          <th className="px-5 py-4">Last Name</th>
+                          <th className="px-5 py-4">Email Address</th>
+                          <th className="px-5 py-4">Institution</th>
                           <th className="px-5 py-4">Subject</th>
-                          <th className="px-5 py-4">Category</th>
                           <th className="px-5 py-4">Status</th>
                           <th className="px-5 py-4">Date</th>
+                          <th className="px-5 py-4 text-right">Action</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100">
                         {contactQueries.map((query) => (
                           <tr key={query.id} className="hover:bg-slate-50/70">
                             <td className="px-5 py-4 font-bold text-slate-900">{query.id}</td>
-                            <td className="px-5 py-4 text-slate-700">{query.name}</td>
+                            <td className="px-5 py-4 text-slate-700">{query.firstName}</td>
+                            <td className="px-5 py-4 text-slate-700">{query.lastName}</td>
                             <td className="px-5 py-4 text-slate-500">{query.email}</td>
+                            <td className="max-w-[220px] px-5 py-4 text-slate-500">{query.institution}</td>
                             <td className="px-5 py-4 font-medium text-slate-800">{query.subject}</td>
-                            <td className="px-5 py-4 text-slate-500">{query.category}</td>
                             <td className="px-5 py-4">
                               <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">{query.status}</span>
                             </td>
                             <td className="px-5 py-4 text-slate-500">{query.date}</td>
+                            <td className="px-5 py-4 text-right">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedQuery(query)}
+                                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 transition-colors hover:border-primary hover:text-primary"
+                              >
+                                <Eye size={15} /> View
+                              </button>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -376,34 +435,26 @@ const Admin = () => {
             {activeTab === "profile" && (
               <section>
                 <div className="mb-6">
-                  <span className="text-xs font-bold uppercase tracking-widest text-primary">Fourth Page</span>
+                  <span className="text-xs font-bold uppercase tracking-widest text-primary">Profile</span>
                   <h2 className="mt-2 text-3xl font-extrabold text-slate-950">Admin User Profile</h2>
-                  <p className="mt-1 text-sm text-slate-500">Admin-specific details and account actions.</p>
+                  <p className="mt-1 text-sm text-slate-500">Admin account details, password controls and session action.</p>
                 </div>
 
-                <div className="grid gap-5 xl:grid-cols-[0.72fr_1.28fr]">
-                  <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-                    <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                      <ShieldCheck size={34} />
-                    </div>
-                    <h3 className="mt-4 text-xl font-extrabold text-slate-950">{adminProfile.name}</h3>
-                    <p className="text-sm font-bold text-primary">{adminProfile.role}</p>
-                    <button
-                      type="button"
-                      className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-slate-800"
-                    >
-                      <LogOut size={17} /> Logout
-                    </button>
-                  </div>
-
+                <div className="space-y-5">
                   <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
                     <h3 className="font-extrabold text-slate-950">Profile Details</h3>
-                    <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                    <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
+                      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                        <ShieldCheck size={34} />
+                      </div>
+                      <h3 className="mt-4 text-xl font-extrabold text-slate-950">{adminProfile.name}</h3>
+                      <p className="text-sm font-bold text-primary">{adminProfile.role}</p>
+                    </div>
+                    <div className="mt-5 grid gap-4 lg:grid-cols-3">
                       {[
                         { label: "Email", value: adminProfile.email, icon: Mail },
                         { label: "Department", value: adminProfile.department, icon: ClipboardList },
                         { label: "Last Login", value: adminProfile.lastLogin, icon: Eye },
-                        { label: "Permissions", value: "Dashboard, Users, Queries, Profile", icon: ShieldCheck },
                       ].map((item) => (
                         <div key={item.label} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
                           <item.icon size={18} className="text-primary" />
@@ -413,12 +464,198 @@ const Admin = () => {
                       ))}
                     </div>
                   </div>
+
+                  <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+                    <div className="mb-5 flex items-center gap-2">
+                      <KeyRound size={18} className="text-primary" />
+                      <h3 className="font-extrabold text-slate-950">Change Password</h3>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-3">
+                      {["Current password", "New password", "Confirm password"].map((label) => (
+                        <div key={label}>
+                          <label className="mb-2 block text-sm font-bold text-slate-700">{label}</label>
+                          <input
+                            type="password"
+                            placeholder="Enter password"
+                            className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      type="button"
+                      className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-primary/90"
+                    >
+                      <KeyRound size={17} /> Update Password
+                    </button>
+                  </div>
                 </div>
               </section>
             )}
           </div>
         </main>
       </div>
+
+      {showCreateUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-md">
+          <div className="w-full max-w-2xl rounded-2xl border border-white/45 bg-white/85 p-5 shadow-2xl shadow-slate-950/30 backdrop-blur-xl md:p-6">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-widest text-primary">Create User</span>
+                <h3 className="mt-2 text-2xl font-extrabold text-slate-950">Admin, Editor or Reviewer</h3>
+                <p className="mt-1 text-sm text-slate-500">Add a privileged account for the journal workspace.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCreateUser(false);
+                  setCreateUserError("");
+                }}
+                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-500 transition-colors hover:border-primary hover:text-primary"
+                aria-label="Close create user popup"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm font-bold text-slate-700">User type</label>
+                <select
+                  value={newUser.role}
+                  onChange={(event) => setNewUser((value) => ({ ...value, role: event.target.value as Exclude<UserRole, "User"> }))}
+                  className="h-11 w-full rounded-xl border border-slate-200 bg-white/90 px-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                >
+                  <option>Admin</option>
+                  <option>Editor</option>
+                  <option>Reviewer</option>
+                </select>
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-bold text-slate-700">User name</label>
+                <input
+                  value={newUser.name}
+                  onChange={(event) => setNewUser((value) => ({ ...value, name: event.target.value }))}
+                  placeholder="Enter full name"
+                  className="h-11 w-full rounded-xl border border-slate-200 bg-white/90 px-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <label className="mb-2 block text-sm font-bold text-slate-700">Email</label>
+                <input
+                  value={newUser.email}
+                  onChange={(event) => setNewUser((value) => ({ ...value, email: event.target.value }))}
+                  type="email"
+                  placeholder="Enter email address"
+                  className="h-11 w-full rounded-xl border border-slate-200 bg-white/90 px-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-bold text-slate-700">Password</label>
+                <input
+                  value={newUser.password}
+                  onChange={(event) => setNewUser((value) => ({ ...value, password: event.target.value }))}
+                  type="password"
+                  placeholder="Enter password"
+                  className="h-11 w-full rounded-xl border border-slate-200 bg-white/90 px-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+              <div>
+                <label className="mb-2 block text-sm font-bold text-slate-700">Confirm password</label>
+                <input
+                  value={newUser.confirmPassword}
+                  onChange={(event) => setNewUser((value) => ({ ...value, confirmPassword: event.target.value }))}
+                  type="password"
+                  placeholder="Confirm password"
+                  className="h-11 w-full rounded-xl border border-slate-200 bg-white/90 px-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+            </div>
+
+            {createUserError && (
+              <div className="mt-4 rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">
+                {createUserError}
+              </div>
+            )}
+
+            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowCreateUser(false);
+                  setCreateUserError("");
+                }}
+                className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white/80 px-5 py-3 text-sm font-bold text-slate-700 transition-colors hover:border-primary hover:text-primary"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={createPrivilegedUser}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-primary/90"
+              >
+                <Plus size={17} /> Create User
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedQuery && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-md">
+          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-white/45 bg-white/85 p-5 shadow-2xl shadow-slate-950/30 backdrop-blur-xl md:p-6">
+            <div className="mb-5 flex items-start justify-between gap-4">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-widest text-primary">Query Details</span>
+                <h3 className="mt-2 text-2xl font-extrabold text-slate-950">{selectedQuery.subject}</h3>
+                <p className="mt-1 text-sm text-slate-500">{selectedQuery.id} - {selectedQuery.date}</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelectedQuery(null)}
+                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-500 transition-colors hover:border-primary hover:text-primary"
+                aria-label="Close query details popup"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              {[
+                { label: "First Name", value: selectedQuery.firstName },
+                { label: "Last Name", value: selectedQuery.lastName },
+                { label: "Email Address", value: selectedQuery.email },
+                { label: "Institution / Affiliation", value: selectedQuery.institution },
+                { label: "Subject", value: selectedQuery.subject },
+                { label: "Status", value: selectedQuery.status },
+              ].map((item) => (
+                <div key={item.label} className="rounded-2xl border border-slate-100 bg-white/80 p-4">
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400">{item.label}</p>
+                  <p className="mt-1 font-bold text-slate-800">{item.value}</p>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-slate-100 bg-white/80 p-4">
+              <div className="mb-3 flex items-center gap-2">
+                <MessageSquareText size={18} className="text-primary" />
+                <p className="font-extrabold text-slate-950">Message</p>
+              </div>
+              <p className="text-sm leading-relaxed text-slate-600">{selectedQuery.message}</p>
+            </div>
+
+            <div className="mt-6 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setSelectedQuery(null)}
+                className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-primary/90"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

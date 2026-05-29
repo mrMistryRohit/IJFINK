@@ -45,7 +45,7 @@ const sidebarItems: Array<{ id: EditorTab; label: string; icon: typeof BarChart3
 
 const editorProfile = {
   name: "Dr. Pradeep Kumar Das",
-  email: "chief.editor@ijink.com",
+  email: "chief.editor@IJFINK.com",
   role: "Chief Editor",
   section: "Life Science and Biotechnology",
   lastLogin: "21 May 2026, 05:20 PM",
