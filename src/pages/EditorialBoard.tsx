@@ -214,7 +214,7 @@ const EditorialBoard = () => {
                 <img
                   src={editorInChief.image}
                   alt={editorInChief.name}
-                  className="w-32 h-32 rounded-full object-cover border-4 border-emerald-500/30 mb-4"
+                  className="w-32 h-32 rounded-full object-cover object-top border-4 border-emerald-500/30 mb-4"
                 />
                 <h3 className="text-lg font-bold text-white">{editorInChief.name}</h3>
                 <p className="text-sm font-medium text-emerald-400 mt-1">{editorInChief.role}</p>
@@ -277,7 +277,7 @@ const EditorialBoard = () => {
                   <img
                     src={member.image}
                     alt={member.name}
-                    className="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-4 border-primary/25 ring-4 ring-emerald-500/10"
+                    className="w-20 h-20 rounded-full object-cover object-top mx-auto mb-4 border-4 border-primary/25 ring-4 ring-emerald-500/10"
                   />
                   <h3 className="text-base font-bold text-foreground">{member.name}</h3>
                   <p className="text-sm font-medium text-primary mt-1">{member.role}</p>
@@ -331,7 +331,7 @@ const EditorialBoard = () => {
                   <img
                     src={member.image}
                     alt={member.name}
-                    className="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-4 border-primary/25 ring-4 ring-emerald-500/10"
+                    className="w-20 h-20 rounded-full object-cover object-top mx-auto mb-4 border-4 border-primary/25 ring-4 ring-emerald-500/10"
                   />
                   <h3 className="text-base font-bold text-foreground">{member.name}</h3>
                   <p className="text-sm font-medium text-primary mt-1">{member.role}</p>
@@ -385,7 +385,7 @@ const EditorialBoard = () => {
                   <img
                     src={member.image}
                     alt={member.name}
-                    className="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-4 border-primary/25 ring-4 ring-emerald-500/10"
+                    className="w-20 h-20 rounded-full object-cover object-top mx-auto mb-4 border-4 border-primary/25 ring-4 ring-emerald-500/10"
                   />
                   <h3 className="text-base font-bold text-foreground">{member.name}</h3>
                   <p className="text-sm font-medium text-primary mt-1">{member.designation}</p>
@@ -439,7 +439,7 @@ const EditorialBoard = () => {
                   <img
                     src={member.image}
                     alt={member.name}
-                    className="w-20 h-20 rounded-full object-cover mx-auto mb-4 border-4 border-primary/25 ring-4 ring-emerald-500/10"
+                    className="w-20 h-20 rounded-full object-cover object-top mx-auto mb-4 border-4 border-primary/25 ring-4 ring-emerald-500/10"
                   />
                   <h3 className="text-base font-bold text-foreground">{member.name}</h3>
                   <p className="text-sm font-medium text-primary mt-1">{member.role}</p>
