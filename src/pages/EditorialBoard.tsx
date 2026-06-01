@@ -156,6 +156,15 @@ const editorialMembers = [
     bio: "Dr. Prosun Tribedi, PhD, is Professor and Dean of Academics in the Department of Biotechnology at The Neotia University, WB. He leads academic strategies and biotech research initiatives.",
     specializations: ["Biotechnology", "Academic Administration", "Environmental Biotech"],
   },
+  {
+    name: "Dr. Samiran Bisai FRAI, FRSPH",
+    role: "Associate Professor & HoD",
+    department: "Department of Anthropology & Tribal Studies",
+    institution: "Sidho Kanho Birsha University, Purulia, WB",
+    image: null,
+    bio: "Dr. Samiran Bisai is a distinguished Associate Professor and Head of the Department of Anthropology & Tribal Studies at Sidho Kanho Birsha University, Purulia, West Bengal. A Fellow of the Royal Anthropological Institute (FRAI) and Fellow of the Royal Society for Public Health (FRSPH), he brings an exceptional blend of anthropological scholarship and public health expertise to his academic and research endeavours. His research spans physical anthropology, tribal health, nutritional anthropology, and the socio-biological dimensions of indigenous communities in India. Dr. Bisai has made significant contributions to understanding the health and nutritional status of tribal and rural populations in West Bengal and beyond, with numerous peer-reviewed publications in national and international journals. His work bridges the gap between anthropological theory and applied public health, making him a vital voice in indigenous studies and community welfare.",
+    specializations: ["Physical Anthropology", "Tribal & Indigenous Studies", "Nutritional Anthropology", "Public Health & Epidemiology"],
+  },
 ];
 
 const EditorialBoard = () => {
@@ -274,11 +283,17 @@ const EditorialBoard = () => {
                 }`}
               >
                 <div className="p-6 text-center border-b border-border">
-                  <img
-                    src={member.image}
-                    alt={member.name}
-                    className="w-20 h-20 rounded-full object-cover object-top mx-auto mb-4 border-4 border-primary/25 ring-4 ring-emerald-500/10"
-                  />
+                  {member.image ? (
+                    <img
+                      src={member.image}
+                      alt={member.name}
+                      className="w-20 h-20 rounded-full object-cover object-top mx-auto mb-4 border-4 border-primary/25 ring-4 ring-emerald-500/10"
+                    />
+                  ) : (
+                    <div className="w-20 h-20 rounded-full mx-auto mb-4 border-4 border-primary/25 ring-4 ring-emerald-500/10 bg-primary/10 flex items-center justify-center">
+                      <span className="text-2xl font-bold text-primary">{member.name.charAt(0)}</span>
+                    </div>
+                  )}
                   <h3 className="text-base font-bold text-foreground">{member.name}</h3>
                   <p className="text-sm font-medium text-primary mt-1">{member.role}</p>
                   <p className="text-xs text-muted-foreground mt-0.5">{member.institution}</p>
