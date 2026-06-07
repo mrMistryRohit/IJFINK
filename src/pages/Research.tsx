@@ -121,7 +121,11 @@ const publishedArticles = [
 
 const Research = () => {
   const [activeTab, setActiveTab] = useState(0);
-  const tabs = ["Articles & Issues", "About", "Guidelines for Author", "Ethics"];
+  const tabs = [
+    { label: "Articles & Issues", value: 0 },
+    { label: "About", value: 1 },
+    { label: "Ethics", value: 3 },
+  ];
 
   return (
     <div className="min-h-screen">
@@ -202,17 +206,17 @@ const Research = () => {
       {/* Tabs navigation */}
       <div className="bg-[hsl(200,25%,8%)] border-b border-primary-foreground/10 sticky top-[72px] z-40">
         <div className="container mx-auto px-4 flex gap-0 overflow-x-auto">
-          {tabs.map((tab, i) => (
+          {tabs.map((tab) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(i)}
+              key={tab.label}
+              onClick={() => setActiveTab(tab.value)}
               className={`py-4 px-5 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === i
+                activeTab === tab.value
                   ? "border-primary text-primary"
                   : "border-transparent text-primary-foreground/40 hover:text-primary-foreground/70"
               }`}
             >
-              {tab}
+              {tab.label}
             </button>
           ))}
         </div>
@@ -398,7 +402,7 @@ const Research = () => {
       </section>}
 
       {/* Tab: Guidelines for Author */}
-      {/* {activeTab === 2 && (
+      {activeTab === 2 && (
         <section className="section-padding bg-slate-50">
           <div className="container mx-auto max-w-4xl">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
@@ -485,7 +489,7 @@ const Research = () => {
             </motion.div>
           </div>
         </section>
-      )} */}
+      )}
 
       {/* Tab: Ethics */}
       {activeTab === 3 && (

@@ -441,25 +441,24 @@ const Journal = () => {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="border-t border-white/10">
-          <div className="container mx-auto px-0">
-            <div className="flex gap-0 overflow-x-auto">
-              {tabs.map((tab, i) => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(i)}
-                  className={`py-4 px-6 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${
-                    activeTab === i ? "border-primary text-primary" : "border-transparent text-white/40 hover:text-white/70"
-                  }`}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
       </section>
+
+      {/* Tabs */}
+      <div className="bg-[hsl(200,25%,8%)] border-b border-primary-foreground/10 sticky top-[72px] z-40">
+        <div className="container mx-auto px-4 flex gap-0 overflow-x-auto">
+          {tabs.map((tab, i) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(i)}
+              className={`py-4 px-6 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${
+                activeTab === i ? "border-primary text-primary" : "border-transparent text-white/40 hover:text-white/70"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Tab Content */}
       {activeTab === 0 && (
