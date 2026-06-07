@@ -144,7 +144,7 @@ const AimsScope = () => {
               </span>
             </h1>
             <p className="text-white/70 text-lg leading-relaxed">
-              IJFINK is an international, peer-reviewed, open-access journal dedicated to advancing scientific knowledge and innovation within the broad spectrum of Biological and Life Sciences.
+              IJFINK is an international, peer-reviewed, open-access journal dedicated to advancing scientific knowledge and innovation within the broad spectrum of Biological and Life Sciences
             </p>
           </motion.div>
         </div>
@@ -223,7 +223,7 @@ const AimsScope = () => {
               Research Areas
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-slate-500">
-              IJFINK welcomes submissions in, but not limited to, these core areas.
+              IJFINK welcomes submissions in, but not limited to, these core areas
             </p>
           </motion.div>
 

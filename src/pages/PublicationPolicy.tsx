@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import PageHeader from "@/components/PageHeader";
 import PolicyAccordion from "@/components/PolicyAccordion";
 import { publicationPolicySections } from "@/data/policies";
+import { BookOpen } from "lucide-react";
 
 const PublicationPolicy = () => {
   return (
@@ -11,7 +12,8 @@ const PublicationPolicy = () => {
       <PageHeader
         badge="Publication Standards"
         title="Publication Policy"
-        description="Detailed ethics, malpractice and publication frequency guidance governing IJFINK's scholarly publishing process."
+        description="Detailed ethics, malpractice and publication frequency guidance governing IJFINK's scholarly publishing process"
+        icon={BookOpen}
       />
 
       <section className="section-padding bg-slate-50">
@@ -24,7 +26,7 @@ const PublicationPolicy = () => {
               Ethics, Malpractice and Frequency
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-slate-500">
-              These statements define responsibilities for authors, reviewers and editors, along with IJFINK's publication schedule.
+              These statements define responsibilities for authors, reviewers and editors, along with IJFINK's publication schedule
             </p>
           </div>
 

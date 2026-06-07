@@ -3,6 +3,7 @@ import Footer from "@/components/Footer";
 import PageHeader from "@/components/PageHeader";
 import PolicyAccordion from "@/components/PolicyAccordion";
 import { policySections, publicationSummary } from "@/data/policies";
+import { ShieldCheck } from "lucide-react";
 
 const Policy = () => {
   const sections = [
@@ -17,7 +18,8 @@ const Policy = () => {
       <PageHeader
         badge="Journal Policies"
         title="Policy"
-        description="Transparent editorial, access, privacy and publication standards for IJFINK authors, reviewers, editors and readers."
+        description="Transparent editorial, access, privacy and publication standards for IJFINK authors, reviewers, editors and readers"
+        icon={ShieldCheck}
       />
 
       <section className="section-padding bg-slate-50">
@@ -30,7 +32,7 @@ const Policy = () => {
               Complete Policy Statements
             </h2>
             <p className="mx-auto mt-4 max-w-2xl text-slate-500">
-              Open each section to read the full policy text. Publication guidance includes a short summary here and a dedicated page for the full statements.
+              Open each section to read the full policy text. Publication guidance includes a short summary here and a dedicated page for the full statements
             </p>
           </div>
 

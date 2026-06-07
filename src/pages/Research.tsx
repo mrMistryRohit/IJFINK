@@ -398,7 +398,7 @@ const Research = () => {
       </section>}
 
       {/* Tab: Guidelines for Author */}
-      {activeTab === 2 && (
+      {/* {activeTab === 2 && (
         <section className="section-padding bg-slate-50">
           <div className="container mx-auto max-w-4xl">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
@@ -485,7 +485,7 @@ const Research = () => {
             </motion.div>
           </div>
         </section>
-      )}
+      )} */}
 
       {/* Tab: Ethics */}
       {activeTab === 3 && (
