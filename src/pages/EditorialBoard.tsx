@@ -15,6 +15,7 @@ import AmritaBanerjeeImg from "@/assets/Editorial Board Member/amrita banerjee.j
 import ProsunTribediImg from "@/assets/Editorial Board Member/prosun tribedi.png";
 import NagendraThakurImg from "@/assets/Editorial Board Member/Nagendra-Thakur.jpg.jpeg";
 import HarekrishnaJanaImg from "@/assets/Editorial Board Member/Harekrishna-Jana.jpg.jpeg";
+import SamiranBisaiImg from "@/assets/Editorial Board Member/Samiran Bisai.jpeg";
 
 
 const editorInChief = {
@@ -161,7 +162,7 @@ const editorialMembers = [
     role: "Associate Professor & HoD",
     department: "Department of Anthropology & Tribal Studies",
     institution: "Sidho Kanho Birsha University, Purulia, WB",
-    image: null,
+    image: SamiranBisaiImg,
     bio: "Dr. Samiran Bisai is a distinguished Associate Professor and Head of the Department of Anthropology & Tribal Studies at Sidho Kanho Birsha University, Purulia, West Bengal. A Fellow of the Royal Anthropological Institute (FRAI) and Fellow of the Royal Society for Public Health (FRSPH), he brings an exceptional blend of anthropological scholarship and public health expertise to his academic and research endeavours. His research spans physical anthropology, tribal health, nutritional anthropology, and the socio-biological dimensions of indigenous communities in India. Dr. Bisai has made significant contributions to understanding the health and nutritional status of tribal and rural populations in West Bengal and beyond, with numerous peer-reviewed publications in national and international journals. His work bridges the gap between anthropological theory and applied public health, making him a vital voice in indigenous studies and community welfare.",
     specializations: ["Physical Anthropology", "Tribal & Indigenous Studies", "Nutritional Anthropology", "Public Health & Epidemiology"],
   },

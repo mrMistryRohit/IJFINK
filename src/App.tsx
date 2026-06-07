@@ -6,10 +6,13 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index";
 import About from "./pages/About";
+import AimsScope from "./pages/AimsScope";
 import Journal from "./pages/Journal";
 import Research from "./pages/Research";
 import EditorialBoard from "./pages/EditorialBoard";
 import Contact from "./pages/Contact";
+import Policy from "./pages/Policy";
+import PublicationPolicy from "./pages/PublicationPolicy";
 import SubmitPaper from "./pages/SubmitPaper";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -41,9 +44,12 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/about" element={<About />} />
+          <Route path="/aims-scope" element={<AimsScope />} />
           <Route path="/journal" element={<Journal />} />
           <Route path="/research" element={<Research />} />
           <Route path="/editorial-board" element={<EditorialBoard />} />
+          <Route path="/policy" element={<Policy />} />
+          <Route path="/publication-policy" element={<PublicationPolicy />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/submit" element={<SubmitPaper />} />
           <Route path="/login" element={<Login />} />

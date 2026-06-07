@@ -84,6 +84,101 @@ const categoryColors: Record<string, string> = {
   Biochemistry: "bg-rose-100 text-rose-700 border-rose-200",
 };
 
+const authorGuidelineAreas = [
+  "Microbiology",
+  "Biotechnology",
+  "Molecular Biology",
+  "Cell Biology",
+  "Genetics and Genomics",
+  "Biochemistry",
+  "Bioinformatics",
+  "Immunology",
+  "Biomedical Sciences",
+  "Pharmaceutical Sciences",
+  "Environmental Biology",
+  "Environmental Microbiology",
+  "Agricultural Sciences",
+  "Plant Sciences",
+  "Zoology",
+  "Public Health",
+  "Clinical and Translational Research",
+  "Food Science and Technology",
+  "Ecology and Conservation Biology",
+  "Industrial Biotechnology",
+];
+
+const manuscriptTypes = [
+  "Original Research Articles",
+  "Review Articles",
+  "Short Communications",
+  "Case Studies",
+  "Technical Notes",
+  "Perspectives and Commentary Articles",
+  "Editorials (by invitation)",
+];
+
+const submissionRequirements = [
+  "The manuscript is original and has not been published previously.",
+  "The manuscript is not under consideration by another journal simultaneously.",
+  "All authors have approved the submitted version.",
+  "Appropriate permissions have been obtained for copyrighted material.",
+  "Ethical standards and publication policies have been followed.",
+  "Research involving humans, animals or biological materials has received appropriate ethical approval from the relevant institutional authority.",
+  "Conflicts of interest and funding sources are fully disclosed.",
+];
+
+const manuscriptStructure = [
+  {
+    title: "Title Page",
+    items: [
+      "Title of the manuscript",
+      "Author name(s)",
+      "Affiliation(s)",
+      "Corresponding author details",
+      "ORCID ID (if available)",
+    ],
+  },
+  {
+    title: "Main Manuscript",
+    items: [
+      "Abstract (150-300 words)",
+      "Keywords (3-8 keywords)",
+      "Introduction",
+      "Literature Review (where applicable)",
+      "Materials and Methods",
+      "Results",
+      "Discussion",
+      "Conclusion",
+      "Acknowledgements (optional)",
+      "Funding Information (if applicable)",
+      "Ethical Approval Statement (where applicable)",
+      "Conflict of Interest Statement",
+      "References",
+    ],
+  },
+];
+
+const formattingRequirements = [
+  { label: "File Format", value: "Microsoft Word (.doc or .docx)" },
+  { label: "Font", value: "Times New Roman" },
+  { label: "Font Size", value: "12 pt" },
+  { label: "Line Spacing", value: "1.5" },
+  { label: "Margins", value: "1 inch on all sides" },
+  { label: "Page Numbering", value: "Required" },
+  { label: "Language", value: "English" },
+];
+
+const prohibitedPractices = [
+  "Plagiarism",
+  "Self-plagiarism",
+  "Data fabrication",
+  "Data falsification",
+  "Duplicate publication",
+  "Improper authorship attribution",
+  "Citation manipulation",
+  "Unethical research practices",
+];
+
 const features = [
   { icon: ShieldCheck, title: "Double-Blind Peer Review", desc: "All manuscripts undergo rigorous double-blind review by 2–3 international domain experts." },
   { icon: Globe, title: "Open Access", desc: "Published articles are immediately and permanently free to read, download and share worldwide." },
@@ -99,6 +194,179 @@ const volumes = [
   // { vol: "Volume 0", year: "2024", issues: 0, articles: 0 },
   // { vol: "Volume 0", year: "2023", issues: 0, articles: 0 },
 ];
+
+const AuthorGuidelinesContent = () => (
+  <>
+    <div>
+      <h2 className="text-4xl font-extrabold text-slate-900 mb-4">Author Guidelines</h2>
+      <p className="text-lg text-slate-600 leading-relaxed">
+        The International Journal for Invention of Noble Knowledge (IJFINK) is an international peer-reviewed, open-access journal dedicated exclusively to the advancement of Biological and Life Sciences.
+      </p>
+      <p className="mt-4 text-slate-600 leading-relaxed">
+        The journal welcomes original, high-quality and unpublished manuscripts that contribute to scientific knowledge, innovation and practical applications in biological research. Authors are encouraged to submit research that demonstrates scientific rigor, originality, ethical integrity and relevance to contemporary challenges.
+      </p>
+    </div>
+
+    <div className="bg-white rounded-2xl border border-slate-100 p-8">
+      <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+        <Microscope size={24} className="text-primary" /> Areas of Interest
+      </h3>
+      <p className="text-sm text-slate-600 mb-5">
+        IJFINK welcomes submissions in, but not limited to, the following fields:
+      </p>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+        {authorGuidelineAreas.map((area) => (
+          <div key={area} className="flex items-center gap-2 rounded-xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-700">
+            <CheckCircle2 size={16} className="flex-shrink-0 text-emerald-500" />
+            <span>{area}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div className="bg-white rounded-2xl border border-slate-100 p-8">
+      <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+        <FileText size={24} className="text-primary" /> Types of Manuscripts Accepted
+      </h3>
+      <div className="grid md:grid-cols-2 gap-4">
+        {manuscriptTypes.map((type) => (
+          <div key={type} className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+            <h4 className="font-semibold text-slate-900">{type}</h4>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div className="bg-white rounded-2xl border border-slate-100 p-8">
+      <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+        <FileCheck size={24} className="text-primary" /> Submission Requirements
+      </h3>
+      <div className="space-y-3">
+        {submissionRequirements.map((item) => (
+          <div key={item} className="flex items-start gap-3">
+            <CheckCircle2 size={18} className="text-emerald-500 flex-shrink-0 mt-0.5" />
+            <span className="text-slate-700">{item}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div className="bg-white rounded-2xl border border-slate-100 p-8">
+      <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+        <Layers size={24} className="text-primary" /> Manuscript Structure
+      </h3>
+      <p className="text-sm text-slate-600 mb-6">
+        Authors are encouraged to organize manuscripts using the following structure:
+      </p>
+      <div className="grid md:grid-cols-2 gap-5">
+        {manuscriptStructure.map((group) => (
+          <div key={group.title} className="rounded-2xl border border-slate-100 bg-slate-50 p-5">
+            <h4 className="font-bold text-slate-900 mb-3">{group.title}</h4>
+            <ul className="space-y-2">
+              {group.items.map((item) => (
+                <li key={item} className="flex items-start gap-2 text-sm text-slate-600">
+                  <CheckCircle2 size={15} className="mt-0.5 flex-shrink-0 text-emerald-500" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div className="bg-white rounded-2xl border border-slate-100 p-8">
+      <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+        <BarChart3 size={24} className="text-primary" /> Formatting Requirements
+      </h3>
+      <div className="grid sm:grid-cols-2 gap-4 mb-6">
+        {formattingRequirements.map((requirement) => (
+          <div key={requirement.label} className="rounded-xl border border-slate-100 bg-slate-50 p-4">
+            <p className="text-xs font-bold uppercase tracking-widest text-primary mb-1">{requirement.label}</p>
+            <p className="text-sm font-semibold text-slate-800">{requirement.value}</p>
+          </div>
+        ))}
+      </div>
+      <div className="space-y-4 text-sm leading-relaxed text-slate-600">
+        <p>
+          Tables, figures and illustrations should be clearly numbered, appropriately titled and cited within the text. High-quality images and graphical representations are encouraged where relevant.
+        </p>
+        <p>
+          IJFINK accepts APA (Latest Edition) citation style unless otherwise specified by the Editorial Office. Authors are responsible for ensuring the accuracy, completeness and consistency of all references cited in the manuscript.
+        </p>
+      </div>
+    </div>
+
+    <div className="bg-gradient-to-br from-primary/5 to-emerald-500/5 rounded-2xl border border-primary/20 p-8">
+      <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+        <ShieldCheck size={24} className="text-primary" /> Ethical Considerations and Peer Review
+      </h3>
+      <p className="text-sm leading-relaxed text-slate-600 mb-5">
+        Authors must adhere to the highest standards of publication ethics and research integrity. All submissions may undergo plagiarism screening prior to peer review.
+      </p>
+      <div className="grid md:grid-cols-2 gap-5">
+        <div className="rounded-2xl border border-white/70 bg-white/80 p-5">
+          <h4 className="font-bold text-slate-900 mb-3">Strictly Prohibited</h4>
+          <ul className="space-y-2">
+            {prohibitedPractices.map((item) => (
+              <li key={item} className="flex items-start gap-2 text-sm text-slate-600">
+                <AlertCircle size={15} className="mt-0.5 flex-shrink-0 text-amber-500" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div className="rounded-2xl border border-white/70 bg-white/80 p-5">
+          <h4 className="font-bold text-slate-900 mb-3">Review Outcomes</h4>
+          <ul className="space-y-2">
+            {["Accept", "Minor Revision", "Major Revision", "Reject"].map((item) => (
+              <li key={item} className="flex items-start gap-2 text-sm text-slate-600">
+                <CheckCircle2 size={15} className="mt-0.5 flex-shrink-0 text-emerald-500" />
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-4 text-sm leading-relaxed text-slate-600">
+            All eligible manuscripts undergo a Double-Blind Peer Review process. The final publication decision rests with the Editor-in-Chief and Editorial Board.
+          </p>
+        </div>
+      </div>
+      <div className="mt-5 space-y-3 text-sm leading-relaxed text-slate-600">
+        <p>
+          For studies involving human participants, informed consent and ethical approval must be obtained and clearly stated in the manuscript.
+        </p>
+        <p>
+          For studies involving animals, authors must ensure compliance with institutional, national and international guidelines for animal welfare and ethical treatment.
+        </p>
+      </div>
+    </div>
+
+    <div className="bg-white rounded-2xl border border-slate-100 p-8">
+      <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
+        <Globe size={24} className="text-primary" /> Open Access, Copyright and Submission
+      </h3>
+      <div className="space-y-5 text-sm leading-relaxed text-slate-600">
+        <p>
+          IJFINK follows an Open Access publishing model to ensure unrestricted dissemination of scientific knowledge worldwide. All published articles are freely accessible to readers without subscription fees, registration requirements or access barriers.
+        </p>
+        <p>
+          Authors retain copyright of their work while granting IJFINK a non-exclusive license to publish, archive, distribute and disseminate the accepted manuscript in electronic formats. Authors are responsible for obtaining permission to reproduce any copyrighted material included in their submissions.
+        </p>
+        <p>
+          Manuscripts may be submitted through the journal submission portal or through the official editorial communication channels as specified on the website.
+        </p>
+        <div className="rounded-xl border border-primary/15 bg-primary/5 p-4">
+          <p className="font-semibold text-slate-900">For submission-related queries:</p>
+          <p className="mt-1">Email: editor@ijfink.com</p>
+          <p>Website: www.ijfink.com</p>
+        </div>
+        <p className="text-slate-500">
+          Disclaimer: The views, interpretations and conclusions expressed in published articles are solely those of the authors and do not necessarily reflect the views of IJFINK, its Editorial Board, reviewers or publisher. Authors bear full responsibility for the accuracy and integrity of the content presented in their work.
+        </p>
+      </div>
+    </div>
+  </>
+);
 
 const Journal = () => {
   const [activeTab, setActiveTab] = useState(0);
@@ -407,6 +675,8 @@ const Journal = () => {
         <section className="section-padding bg-slate-50">
           <div className="container mx-auto max-w-4xl">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+              <AuthorGuidelinesContent />
+              <div className="hidden">
               {/* Guidelines Header */}
               <div>
                 <h2 className="text-4xl font-extrabold text-slate-900 mb-4">Guidelines for Authors</h2>
@@ -510,6 +780,7 @@ const Journal = () => {
                     </div>
                   ))}
                 </div>
+              </div>
               </div>
 
               {/* CTA */}
