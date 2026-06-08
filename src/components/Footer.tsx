@@ -4,9 +4,11 @@ import { Mail, Phone, MapPin } from "lucide-react";
 const quickLinks = [
   { label: "Home", to: "/" },
   { label: "About", to: "/about" },
+  { label: "Aims & Scope", to: "/aims-scope" },
   { label: "Journal", to: "/journal" },
   { label: "Research", to: "/research" },
   { label: "Editorial Board", to: "/editorial-board" },
+  { label: "Policy", to: "/policy" },
   { label: "Contact", to: "/contact" },
 ];
 
@@ -154,9 +156,15 @@ const Footer = () => {
               </a>
             </p>
             <div className="flex gap-4">
-              {["Privacy Policy", "Terms of Use", "Ethics Policy"].map((item) => (
-                <a key={item} href="#" className="text-sm text-white/40 hover:text-emerald-400 transition-colors">{item}</a>
-              ))}
+              <Link to="/policy" className="text-sm text-white/40 hover:text-emerald-400 transition-colors">
+                Privacy Policy
+              </Link>
+              <Link to="/policy" className="text-sm text-white/40 hover:text-emerald-400 transition-colors">
+                Terms of Use
+              </Link>
+              <Link to="/publication-policy" className="text-sm text-white/40 hover:text-emerald-400 transition-colors">
+                Ethics Policy
+              </Link>
             </div>
           </div>
         </div>

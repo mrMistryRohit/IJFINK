@@ -15,6 +15,7 @@ import AmritaBanerjeeImg from "@/assets/Editorial Board Member/amrita banerjee.j
 import ProsunTribediImg from "@/assets/Editorial Board Member/prosun tribedi.png";
 import NagendraThakurImg from "@/assets/Editorial Board Member/Nagendra-Thakur.jpg.jpeg";
 import HarekrishnaJanaImg from "@/assets/Editorial Board Member/Harekrishna-Jana.jpg.jpeg";
+import SamiranBisaiImg from "@/assets/Editorial Board Member/Samiran Bisai.jpeg";
 
 
 const editorInChief = {
@@ -161,8 +162,8 @@ const editorialMembers = [
     role: "Associate Professor & HoD",
     department: "Department of Anthropology & Tribal Studies",
     institution: "Sidho Kanho Birsha University, Purulia, WB",
-    image: null,
-    bio: "Dr. Samiran Bisai is a distinguished Associate Professor and Head of the Department of Anthropology & Tribal Studies at Sidho Kanho Birsha University, Purulia, West Bengal. A Fellow of the Royal Anthropological Institute (FRAI) and Fellow of the Royal Society for Public Health (FRSPH), he brings an exceptional blend of anthropological scholarship and public health expertise to his academic and research endeavours. His research spans physical anthropology, tribal health, nutritional anthropology, and the socio-biological dimensions of indigenous communities in India. Dr. Bisai has made significant contributions to understanding the health and nutritional status of tribal and rural populations in West Bengal and beyond, with numerous peer-reviewed publications in national and international journals. His work bridges the gap between anthropological theory and applied public health, making him a vital voice in indigenous studies and community welfare.",
+    image: SamiranBisaiImg,
+    bio: "Dr. Samiran Bisai, FRAI, FRSPH, is Associate Professor and HOD of Anthropology & Tribal Studies at Sidho Kanho Birsha University, WB. He specializes in physical anthropology, tribal health, nutritional anthropology, and public health.",
     specializations: ["Physical Anthropology", "Tribal & Indigenous Studies", "Nutritional Anthropology", "Public Health & Epidemiology"],
   },
 ];
@@ -270,7 +271,7 @@ const EditorialBoard = () => {
             </h2>
           </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-[repeat(24,minmax(0,1fr))] gap-8 max-w-8xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-8xl mx-auto">
             {editorialMembers.map((member, i) => (
               <motion.div
                 key={member.name}
@@ -278,9 +279,7 @@ const EditorialBoard = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: i * 0.08 }}
-                className={`bg-card rounded-xl border border-border card-shadow hover:elevated-shadow transition-shadow overflow-hidden lg:col-span-6 ${
-                  i === 4 ? "lg:col-start-4" : ""
-                }`}
+                className="bg-card rounded-xl border border-border card-shadow hover:elevated-shadow transition-shadow overflow-hidden"
               >
                 <div className="p-6 text-center border-b border-border">
                   {member.image ? (

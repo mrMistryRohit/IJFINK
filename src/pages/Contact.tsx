@@ -17,7 +17,7 @@ const contactReasons = [
 const contactInfo = [
   { icon: Mail, label: "Email", value: "contact@ijfink.com", sub: "We reply within 24–48 hours" },
   { icon: Phone, label: "Phone", value: "+91 83370 75844", sub: "Available for inquiries" },
-  { icon: MapPin, label: "Address", value: "5th Floor, & GP, Regus Campus", sub: "RDB Boulevard, Plot K-1, EP Block, Sector V, Kolkata, West Bengal 700091" },
+  { icon: MapPin, label: "Address", value: "RDB Boulevard, 5th Floor, Trimplin", sub: "Regus Campus, EP and GP block, Plot K-1, Sector V, Kolkata-700091 West Bengal" },
   { icon: Clock, label: "Office Hours", value: "24/7", sub: "Always Available" },
 ];
 

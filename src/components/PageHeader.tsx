@@ -1,27 +1,49 @@
 import { motion } from "framer-motion";
+import type { LucideIcon } from "lucide-react";
 
 interface PageHeaderProps {
   badge: string;
   title: string;
   description: string;
+  icon?: LucideIcon;
 }
 
-const PageHeader = ({ badge, title, description }: PageHeaderProps) => {
+const PageHeader = ({ badge, title, description, icon: Icon }: PageHeaderProps) => {
+  const titleWords = title.trim().split(" ");
+  const highlightedWord = titleWords.length > 1 ? titleWords.pop() : "";
+  const leadingTitle = titleWords.join(" ");
+
   return (
-    <section className="bg-gradient-to-br from-foreground via-foreground to-primary/30 pt-32 pb-20 px-4">
-      <div className="container mx-auto text-center">
+    <section className="relative overflow-hidden bg-gradient-to-br from-[hsl(220,55%,10%)] via-[hsl(220,48%,13%)] to-[hsl(168,55%,14%)] pt-32 pb-20 px-4">
+      <div
+        className="absolute inset-0 opacity-[0.04]"
+        style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "28px 28px" }}
+      />
+      <div className="absolute right-0 top-0 w-96 h-96 bg-primary/15 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="container mx-auto relative z-10 max-w-3xl text-center">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.7 }}
         >
-          <span className="inline-block bg-primary/20 text-primary-foreground text-xs font-semibold tracking-wider uppercase px-4 py-1.5 rounded-full mb-5">
+          <span className="inline-flex items-center gap-2 bg-primary/20 border border-primary/30 text-white text-xs font-bold tracking-widest uppercase px-4 py-2 rounded-full mb-6">
+            {Icon ? <Icon size={12} /> : null}
             {badge}
           </span>
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-extrabold text-primary-foreground mb-5">
-            {title}
+          <h1 className="text-4xl md:text-6xl font-extrabold text-white mb-5 leading-tight">
+            {highlightedWord ? (
+              <>
+                {leadingTitle}{" "}
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
+                  {highlightedWord}
+                </span>
+              </>
+            ) : (
+              title
+            )}
           </h1>
-          <p className="text-primary-foreground/70 text-lg max-w-2xl mx-auto leading-relaxed">
+          <p className="text-white/70 text-lg leading-relaxed">
             {description}
           </p>
         </motion.div>

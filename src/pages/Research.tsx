@@ -1,7 +1,7 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
-import { BookOpen, Users, TrendingUp, FileText, Calendar, User, ArrowRight, ExternalLink, CheckCircle2, Download, BarChart3 } from "lucide-react";
+import { BookOpen, Users, TrendingUp, FileText, Calendar, User, ArrowRight, ExternalLink, CheckCircle2, Download, BarChart3, ShieldCheck, HeartPulse, AlertCircle, FlaskConical } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import mockupImg from "@/assets/life-science-mockup.png";
@@ -13,6 +13,65 @@ const journalStats = [
   { label: "CiteScore", value: "0" },
   { label: "Impact Factor", value: "0" },
   { label: "Citations", value: "0" },
+];
+
+const ethicsCards = [
+  {
+    icon: Users,
+    title: "Research Involving Human Participants",
+    text: "Research involving human participants must have received prior approval from an appropriate Institutional Ethics Committee (IEC), Institutional Review Board (IRB) or equivalent ethics authority.",
+    points: [
+      "Name of the approving ethics committee",
+      "Approval reference number, where applicable",
+      "Confirmation that ethical approval was obtained before commencement of the study",
+      "Compliance with the Declaration of Helsinki and other applicable ethical guidelines",
+    ],
+  },
+  {
+    icon: HeartPulse,
+    title: "Informed Consent",
+    text: "For studies involving human participants, authors must confirm that informed consent was obtained from all participants prior to participation.",
+    points: [
+      "Consent must be obtained before participation",
+      "Explicit consent is required for identifiable information, photographs or clinical data where applicable",
+    ],
+  },
+  {
+    icon: ShieldCheck,
+    title: "Research Involving Animals",
+    text: "Research involving animals must comply with institutional, national and international guidelines governing animal welfare and ethical treatment.",
+    points: [
+      "Name of the approving animal ethics committee",
+      "Approval number, where applicable",
+      "Statement confirming adherence to ethical standards for animal experimentation",
+      "Use alternatives that minimize animal use whenever scientifically feasible",
+    ],
+  },
+  {
+    icon: FlaskConical,
+    title: "Biosafety and Biological Materials",
+    text: "Research involving microorganisms, infectious agents, genetically modified organisms, biological samples or hazardous materials must comply with all applicable biosafety regulations.",
+    points: [
+      "Appropriate laboratory safety procedures must be followed",
+      "Required biosafety approvals must be obtained throughout the study",
+    ],
+  },
+];
+
+const transparencyPoints = [
+  "Accuracy of reported findings",
+  "Authenticity of data",
+  "Appropriate record keeping",
+  "Transparency in methodology",
+  "Reproducibility of results",
+];
+
+const compliancePoints = [
+  "Ethics approval obtained",
+  "Informed consent procedures",
+  "Animal welfare compliance",
+  "Biosafety approvals",
+  "Conflict of interest disclosures",
 ];
 
 const publishedArticles = [
@@ -62,7 +121,11 @@ const publishedArticles = [
 
 const Research = () => {
   const [activeTab, setActiveTab] = useState(0);
-  const tabs = ["Articles & Issues", "About", "Guidelines for Author"];
+  const tabs = [
+    { label: "Articles & Issues", value: 0 },
+    { label: "About", value: 1 },
+    { label: "Ethics", value: 3 },
+  ];
 
   return (
     <div className="min-h-screen">
@@ -143,17 +206,17 @@ const Research = () => {
       {/* Tabs navigation */}
       <div className="bg-[hsl(200,25%,8%)] border-b border-primary-foreground/10 sticky top-[72px] z-40">
         <div className="container mx-auto px-4 flex gap-0 overflow-x-auto">
-          {tabs.map((tab, i) => (
+          {tabs.map((tab) => (
             <button
-              key={tab}
-              onClick={() => setActiveTab(i)}
+              key={tab.label}
+              onClick={() => setActiveTab(tab.value)}
               className={`py-4 px-5 text-sm font-semibold border-b-2 transition-colors whitespace-nowrap ${
-                activeTab === i
+                activeTab === tab.value
                   ? "border-primary text-primary"
                   : "border-transparent text-primary-foreground/40 hover:text-primary-foreground/70"
               }`}
             >
-              {tab}
+              {tab.label}
             </button>
           ))}
         </div>
@@ -421,6 +484,119 @@ const Research = () => {
                   <a href="#" className="inline-flex items-center gap-2 border border-primary/20 text-primary px-7 py-3 rounded-xl font-semibold hover:bg-primary/5 transition-all">
                     <Download size={16} /> Download Author Guide
                   </a>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </section>
+      )}
+
+      {/* Tab: Ethics */}
+      {activeTab === 3 && (
+        <section className="section-padding bg-slate-50">
+          <div className="container mx-auto max-w-5xl">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="space-y-8"
+            >
+              <div className="text-center">
+                <span className="text-xs font-bold tracking-widest uppercase text-primary mb-3 block">
+                  Research Ethics Statement
+                </span>
+                <h2 className="text-4xl font-extrabold text-slate-900 mb-4">
+                  Responsible and Ethical Research
+                </h2>
+                <p className="text-lg text-slate-600 leading-relaxed max-w-3xl mx-auto">
+                  IJFINK is committed to promoting responsible, ethical and scientifically rigorous research practices. Authors must ensure that their research complies with applicable ethical standards, institutional requirements and relevant national and international regulations.
+                </p>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-6">
+                {ethicsCards.map((card, index) => (
+                  <motion.div
+                    key={card.title}
+                    initial={{ opacity: 0, y: 18 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.4, delay: index * 0.06 }}
+                    className="bg-white rounded-2xl border border-slate-100 p-6 card-shadow"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-5">
+                      <card.icon size={23} className="text-primary" />
+                    </div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-3">{card.title}</h3>
+                    <p className="text-sm text-slate-600 leading-relaxed mb-5">{card.text}</p>
+                    <ul className="space-y-2">
+                      {card.points.map((point) => (
+                        <li key={point} className="flex items-start gap-2 text-sm text-slate-600">
+                          <CheckCircle2 size={16} className="text-emerald-500 flex-shrink-0 mt-0.5" />
+                          <span>{point}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </motion.div>
+                ))}
+              </div>
+
+              <div className="bg-white rounded-2xl border border-slate-100 p-8">
+                <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                  <HeartPulse size={24} className="text-primary" /> Clinical Research
+                </h3>
+                <div className="space-y-3 text-sm leading-relaxed text-slate-600">
+                  <p>Clinical studies must be conducted according to accepted ethical and regulatory standards.</p>
+                  <p>Where applicable, clinical trial registration details should be provided within the manuscript.</p>
+                  <p>Authors are encouraged to register clinical trials with recognized public trial registries before participant enrollment.</p>
+                </div>
+              </div>
+
+              <div className="grid lg:grid-cols-2 gap-6">
+                <div className="bg-gradient-to-br from-primary/5 to-emerald-500/5 rounded-2xl border border-primary/20 p-8">
+                  <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <BarChart3 size={24} className="text-primary" /> Data Integrity and Transparency
+                  </h3>
+                  <p className="text-sm text-slate-600 leading-relaxed mb-5">
+                    Authors are responsible for ensuring the following standards in reported research:
+                  </p>
+                  <ul className="space-y-2">
+                    {transparencyPoints.map((point) => (
+                      <li key={point} className="flex items-start gap-2 text-sm text-slate-600">
+                        <CheckCircle2 size={16} className="text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span>{point}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="mt-5 flex items-start gap-2 text-sm font-semibold text-slate-700">
+                    <AlertCircle size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                    Data fabrication, falsification or selective reporting are strictly prohibited.
+                  </p>
+                </div>
+
+                <div className="bg-white rounded-2xl border border-slate-100 p-8 card-shadow">
+                  <h3 className="text-xl font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <FileText size={24} className="text-primary" /> Ethical Compliance Statement
+                  </h3>
+                  <p className="text-sm text-slate-600 leading-relaxed mb-5">
+                    Where applicable, manuscripts should include an Ethical Compliance Statement describing:
+                  </p>
+                  <ul className="space-y-2">
+                    {compliancePoints.map((point) => (
+                      <li key={point} className="flex items-start gap-2 text-sm text-slate-600">
+                        <CheckCircle2 size={16} className="text-emerald-500 flex-shrink-0 mt-0.5" />
+                        <span>{point}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-2xl border border-slate-100 p-8">
+                <h3 className="text-xl font-bold text-slate-900 mb-4">Conflict of Interest</h3>
+                <div className="space-y-3 text-sm leading-relaxed text-slate-600">
+                  <p>Authors must disclose any financial, professional or personal relationships that may influence the research or interpretation of results.</p>
+                  <p>Any potential conflict of interest must be declared during submission.</p>
+                  <p className="font-semibold text-slate-800">Failure to comply with these requirements may result in rejection, correction or retraction of the manuscript.</p>
+                  <p>IJFINK is committed to upholding the highest standards of research integrity and ethical scientific publishing in service of the global biological sciences community.</p>
                 </div>
               </div>
             </motion.div>

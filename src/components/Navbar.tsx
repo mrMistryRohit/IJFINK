@@ -7,9 +7,11 @@ import logo from "@/assets/ink-logo.png";
 const navLinks = [
   { label: "Home", href: "/" },
   { label: "About", href: "/about" },
+  { label: "Aims & Scope", href: "/aims-scope" },
   { label: "Journal", href: "/journal" },
   { label: "Research", href: "/research" },
   { label: "Editorial Board", href: "/editorial-board" },
+  { label: "Policy", href: "/policy" },
   { label: "Contact", href: "/contact" },
 ];
 
