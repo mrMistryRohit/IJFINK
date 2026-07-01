@@ -1,8 +1,9 @@
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import { toast } from "@/hooks/use-toast";
+import { loginUser, storeAuthSession } from "@/lib/authApi";
 import {
   BookOpen,
   CheckCircle2,
@@ -18,16 +19,59 @@ import {
 
 const Login = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleLogin = (event: FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    navigate("/");
+
+    if (!email.trim() || !password.trim()) {
+      toast({
+        title: "Missing details",
+        description: "Please enter your email and password.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await loginUser({
+        email: email.trim(),
+        password,
+        remember_me: rememberMe,
+      });
+
+      const accessToken = response.data?.access_token;
+      const user = response.data?.user;
+
+      if (!accessToken) {
+        throw new Error("Login succeeded but no access token was returned.");
+      }
+
+      storeAuthSession(accessToken, user);
+      toast({
+        title: "Login successful",
+        description: response.message ?? "Welcome back.",
+      });
+
+      navigate(user?.redirect_to ?? "/user/dashboard", { replace: true });
+    } catch (error) {
+      toast({
+        title: "Login failed",
+        description: error instanceof Error ? error.message : "Unable to sign in right now.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <div className="h-screen overflow-hidden bg-[hsl(220,55%,10%)]">
-      {/* <Navbar /> */}
-
       <main className="relative h-full overflow-hidden">
         <section className="relative flex h-full items-center bg-gradient-to-br from-[hsl(220,55%,10%)] via-[hsl(220,48%,13%)] to-[hsl(168,55%,14%)] px-4 py-8">
           <div
@@ -89,6 +133,8 @@ const Login = () => {
                       <input
                         type="email"
                         placeholder="name@institution.edu"
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
                         className="h-14 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
                       />
                     </div>
@@ -100,6 +146,8 @@ const Login = () => {
                       <input
                         type="password"
                         placeholder="Enter your password"
+                        value={password}
+                        onChange={(event) => setPassword(event.target.value)}
                         className="h-14 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-11 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
                       />
                       <Eye className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
@@ -107,7 +155,12 @@ const Login = () => {
                   </div>
                   <div className="flex items-center justify-between gap-4 pt-1 text-sm">
                     <label className="flex items-center gap-2 font-medium text-slate-600">
-                      <input type="checkbox" className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" />
+                      <input
+                        type="checkbox"
+                        checked={rememberMe}
+                        onChange={(event) => setRememberMe(event.target.checked)}
+                        className="h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary"
+                      />
                       Remember me
                     </label>
                     <button type="button" className="font-bold text-primary hover:text-primary/80">
@@ -116,9 +169,10 @@ const Login = () => {
                   </div>
                   <button
                     type="submit"
+                    disabled={isSubmitting}
                     className="flex h-14 w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-white transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25 active:scale-[0.99]"
                   >
-                    <UserRound size={17} /> Login
+                    <UserRound size={17} /> {isSubmitting ? "Signing in..." : "Login"}
                   </button>
                   <p className="pt-1 text-center text-sm text-slate-500">
                     Don&apos;t have an account?{" "}
@@ -133,7 +187,6 @@ const Login = () => {
         </section>
       </main>
 
-      {/* <Footer /> */}
     </div>
   );
 };

@@ -1,7 +1,8 @@
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { useState, type FormEvent } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
+import { registerAuthor } from "@/lib/authApi";
 import {
   BadgeCheck,
   BookOpenCheck,
@@ -22,10 +23,89 @@ const userBenefits = [
 ];
 
 const Register = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phoneNumber: "",
+    institution: "",
+    orcid: "",
+    password: "",
+    confirmPassword: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const updateField = (field: keyof typeof formData, value: string) => {
+    setFormData((currentData) => ({
+      ...currentData,
+      [field]: value,
+    }));
+  };
+
+  const handleRegister = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim() || !formData.password.trim()) {
+      toast({
+        title: "Missing details",
+        description: "Please complete the required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Password mismatch",
+        description: "Password and confirm password must match.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!formData.institution.trim()) {
+      toast({
+        title: "Missing institution",
+        description: "Institution is required for author registration.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const response = await registerAuthor({
+        first_name: formData.firstName.trim(),
+        last_name: formData.lastName.trim(),
+        email: formData.email.trim(),
+        password: formData.password,
+        confirm_password: formData.confirmPassword,
+        institution: formData.institution.trim(),
+        orcid: formData.orcid.trim() || undefined,
+        phone_number: formData.phoneNumber.trim() || undefined,
+      });
+
+      toast({
+        title: "Registration successful",
+        description: response.message ?? "Your author account has been created.",
+      });
+
+      navigate("/login", { replace: true });
+    } catch (error) {
+      toast({
+        title: "Registration failed",
+        description: error instanceof Error ? error.message : "Unable to create your account right now.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="h-screen overflow-hidden bg-[hsl(220,55%,10%)]">
-      {/* <Navbar /> */}
-
       <main className="h-full overflow-hidden">
         <section className="relative flex h-full items-center overflow-hidden bg-gradient-to-br from-[hsl(220,55%,10%)] via-[hsl(220,48%,13%)] to-[hsl(168,55%,14%)] px-4 py-6">
           <div
@@ -54,7 +134,7 @@ const Register = () => {
                     </p>
                   </div>
 
-                  <form className="space-y-3">
+                  <form className="space-y-3" onSubmit={handleRegister}>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
                         <label className="mb-1 block text-sm font-bold text-slate-700">First Name*</label>
@@ -63,6 +143,8 @@ const Register = () => {
                           <input
                             type="text"
                             placeholder="First name"
+                            value={formData.firstName}
+                            onChange={(event) => updateField("firstName", event.target.value)}
                             className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
                             required
                           />
@@ -70,12 +152,14 @@ const Register = () => {
                       </div>
                       <div>
                         <label className="mb-1 block text-sm font-bold text-slate-700">Last Name*</label>
-                        <input
-                          type="text"
-                          placeholder="Last name"
-                          className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
-                          required
-                        />
+                          <input
+                            type="text"
+                            placeholder="Last name"
+                            value={formData.lastName}
+                            onChange={(event) => updateField("lastName", event.target.value)}
+                            className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
+                            required
+                          />
                       </div>
                     </div>
 
@@ -87,6 +171,8 @@ const Register = () => {
                           <input
                             type="email"
                             placeholder="name@institution.edu"
+                            value={formData.email}
+                            onChange={(event) => updateField("email", event.target.value)}
                             className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
                             required
                           />
@@ -99,6 +185,8 @@ const Register = () => {
                           <input
                             type="tel"
                             placeholder="+91 00000 00000"
+                            value={formData.phoneNumber}
+                            onChange={(event) => updateField("phoneNumber", event.target.value)}
                             className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
                             required
                           />
@@ -114,6 +202,8 @@ const Register = () => {
                           <input
                             type="text"
                             placeholder="University / Organization"
+                            value={formData.institution}
+                            onChange={(event) => updateField("institution", event.target.value)}
                             className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
                             required
                           />
@@ -124,8 +214,10 @@ const Register = () => {
                         <div className="relative">
                           <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
                           <input
-                            type="oid"
+                            type="text"
                             placeholder="0000-0000-0000-0000"
+                            value={formData.orcid}
+                            onChange={(event) => updateField("orcid", event.target.value)}
                             className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
                             required
                           />
@@ -141,6 +233,8 @@ const Register = () => {
                           <input
                             type="password"
                             placeholder="Create password"
+                            value={formData.password}
+                            onChange={(event) => updateField("password", event.target.value)}
                             className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
                             required
                           />
@@ -148,12 +242,14 @@ const Register = () => {
                       </div>
                       <div>
                         <label className="mb-1 block text-sm font-bold text-slate-700">Confirm Password*</label>
-                        <input
-                          type="password"
-                          placeholder="Confirm password"
-                          className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
-                          required
-                        />
+                          <input
+                            type="password"
+                            placeholder="Confirm password"
+                            value={formData.confirmPassword}
+                            onChange={(event) => updateField("confirmPassword", event.target.value)}
+                            className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
+                            required
+                          />
                       </div>
                     </div>
 
@@ -164,9 +260,10 @@ const Register = () => {
 
                     <button
                       type="submit"
+                      disabled={isSubmitting}
                       className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-white transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25 active:scale-[0.99]"
                     >
-                      <UserPlus size={17} /> Register User Account
+                      <UserPlus size={17} /> {isSubmitting ? "Creating Account..." : "Register User Account"}
                     </button>
                     <p className="text-center text-sm text-slate-500">
                       Already have an account?{" "}
@@ -221,7 +318,6 @@ const Register = () => {
         </section>
       </main>
 
-      {/* <Footer /> */}
     </div>
   );
 };
