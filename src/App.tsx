@@ -1,18 +1,15 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import Index from "./pages/Index";
 import About from "./pages/About";
-import AimsScope from "./pages/AimsScope";
 import Journal from "./pages/Journal";
 import Research from "./pages/Research";
 import EditorialBoard from "./pages/EditorialBoard";
 import Contact from "./pages/Contact";
-import Policy from "./pages/Policy";
-import PublicationPolicy from "./pages/PublicationPolicy";
 import SubmitPaper from "./pages/SubmitPaper";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -44,20 +41,22 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/about" element={<About />} />
-          <Route path="/aims-scope" element={<AimsScope />} />
           <Route path="/journal" element={<Journal />} />
           <Route path="/research" element={<Research />} />
           <Route path="/editorial-board" element={<EditorialBoard />} />
-          <Route path="/policy" element={<Policy />} />
-          <Route path="/publication-policy" element={<PublicationPolicy />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/submit" element={<SubmitPaper />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/admin" element={<Admin />} />
-          <Route path="/editor" element={<Editor />} />
-          <Route path="/reviewer" element={<Reviewer />} />
-          <Route path="/user-dashboard" element={<UserDashboard />} />
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/admin/*" element={<Admin />} />
+          <Route path="/editor" element={<Navigate to="/editor/dashboard" replace />} />
+          <Route path="/editor/*" element={<Editor />} />
+          <Route path="/reviewer" element={<Navigate to="/reviewer/dashboard" replace />} />
+          <Route path="/reviewer/*" element={<Reviewer />} />
+          <Route path="/user-dashboard" element={<Navigate to="/user/dashboard" replace />} />
+          <Route path="/user" element={<Navigate to="/user/dashboard" replace />} />
+          <Route path="/user/*" element={<UserDashboard />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
