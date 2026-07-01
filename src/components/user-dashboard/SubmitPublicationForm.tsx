@@ -8,7 +8,8 @@ const textAreaClass =
   "w-full resize-none rounded-xl border border-slate-200 bg-white p-4 text-sm outline-none transition-colors focus:border-primary focus:ring-2 focus:ring-primary/20";
 const authorTitles = ["Dr.", "Mr.", "Mrs.", "Ms.", "Prof."];
 const fileUploads = [
-  { heading: "Main Manuscript", uploadText: "PDF / DOC / DOCX", fullWidth: true },
+  { heading: "Main Manuscript", uploadText: "PDF", fullWidth: true },
+  { heading: "Editable manuscript", uploadText: "DOCX", fullWidth: true, accept: ".docx" },
   { heading: "Cover Letter", uploadText: "PDF / DOC / DOCX", fullWidth: true },
   { heading: "Figures and Images", uploadText: "PNG / JPG / JPEG", fullWidth: false },
   { heading: "Supplementary Files", uploadText: "Supplementary files", fullWidth: false },
@@ -61,7 +62,6 @@ const SubmitPublicationForm = () => {
     "Article info",
     "Author details",
     "Upload files",
-    "Declarations",
     "Reviewer suggestions",
     "Final submit",
   ];
@@ -318,6 +318,7 @@ const SubmitPublicationForm = () => {
                     </span>
                     <input
                       type="file"
+                      accept={file.accept}
                       className="hidden"
                       onChange={(event) => {
                         const fileName = event.target.files?.[0]?.name;
@@ -333,23 +334,6 @@ const SubmitPublicationForm = () => {
           </div>
 
           <div className={activeStep === 3 ? "rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" : "hidden"}>
-            <h2 className="font-extrabold text-slate-950">Declarations</h2>
-            <div className="mt-4 grid gap-3 md:grid-cols-2">
-              {declarations.map((label) => (
-                <label key={label} className="flex min-h-12 items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 text-sm font-bold text-slate-700">
-                  <input
-                    type="checkbox"
-                    className="h-4 w-4 accent-primary"
-                    checked={selectedDeclarations.includes(label)}
-                    onChange={() => toggleDeclaration(label)}
-                  />
-                  {label}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          <div className={activeStep === 4 ? "rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" : "hidden"}>
             <h2 className="font-extrabold text-slate-950">Reviewer Suggestions</h2>
             <div className="mt-4 grid gap-4 md:grid-cols-3">
               <div>
@@ -383,7 +367,7 @@ const SubmitPublicationForm = () => {
             </div>
           </div>
 
-          <div className={activeStep === 5 ? "rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" : "hidden"}>
+          <div className={activeStep === 4 ? "rounded-2xl border border-slate-200 bg-white p-5 shadow-sm" : "hidden"}>
             <div>
               <div>
                 <div className="flex items-center gap-2">
@@ -470,18 +454,6 @@ const SubmitPublicationForm = () => {
               </div>
 
               <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                <h3 className="font-extrabold text-slate-950">Declarations</h3>
-                <div className="mt-4 grid gap-2 md:grid-cols-2">
-                  {declarations.map((label) => (
-                    <div key={label} className="flex items-center gap-2 rounded-xl bg-white p-3 text-sm font-bold text-slate-700">
-                      <Check size={15} className={selectedDeclarations.includes(label) ? "text-primary" : "text-slate-300"} />
-                      {label}
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-xl border border-slate-100 bg-slate-50 p-4">
                 <h3 className="font-extrabold text-slate-950">Reviewer Suggestions</h3>
                 <div className="mt-4 grid gap-3 md:grid-cols-3">
                   <div>
@@ -500,6 +472,28 @@ const SubmitPublicationForm = () => {
               </div>
             </div>
           </div>
+
+          {isFinalStep && (
+            <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+              <h2 className="font-extrabold text-slate-950">Declarations</h2>
+              <div className="mt-4 grid gap-3 md:grid-cols-2">
+                {declarations.map((label) => (
+                  <label
+                    key={label}
+                    className="flex min-h-12 items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 px-4 text-sm font-bold text-slate-700"
+                  >
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 accent-primary"
+                      checked={selectedDeclarations.includes(label)}
+                      onChange={() => toggleDeclaration(label)}
+                    />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
             <button

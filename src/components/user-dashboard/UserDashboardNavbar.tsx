@@ -1,26 +1,46 @@
-import { Bell, LogOut } from "lucide-react";
-import { Link } from "react-router-dom";
-import logo from "@/assets/ink-logo.png";
+import { Bell, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import type { DashboardNavItem, UserDashboardSection } from "./types";
+import { userProfile } from "./userDashboardData";
 
 type UserDashboardNavbarProps = {
   activeSection: UserDashboardSection;
   navItems: DashboardNavItem[];
   onSectionChange: (section: UserDashboardSection) => void;
   unreadCount: number;
+  isSidebarCollapsed: boolean;
+  onToggleSidebar: () => void;
+  sidebarWidthClass: string;
 };
 
-const UserDashboardNavbar = ({ activeSection, navItems, onSectionChange, unreadCount }: UserDashboardNavbarProps) => {
+const UserDashboardNavbar = ({
+  activeSection,
+  navItems,
+  onSectionChange,
+  unreadCount,
+  isSidebarCollapsed,
+  onToggleSidebar,
+  sidebarWidthClass,
+}: UserDashboardNavbarProps) => {
+  const initials = userProfile.name
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div className="mx-auto flex min-h-[76px] max-w-7xl items-center justify-between gap-4 px-4 md:px-6">
-        <Link to="/" className="flex min-w-0 items-center gap-3">
-          <img src={logo} alt="International Journal for Invention of Nobel Knowledge" className="h-11 w-auto max-w-[190px] object-contain" />
-          <div className="hidden border-l border-slate-200 pl-3 lg:block">
-            <p className="text-xs font-bold uppercase tracking-widest text-primary">Publisher</p>
-            <p className="text-sm font-extrabold text-slate-950">User Dashboard</p>
-          </div>
-        </Link>
+    <header className={`sticky top-0 z-30 border-b border-slate-200 bg-white/95 backdrop-blur transition-all duration-300 ${sidebarWidthClass}`}>
+      <div className="mx-auto flex min-h-[76px] w-full items-center justify-between gap-4 px-4 md:px-6">
+        <div className="flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onToggleSidebar}
+            className="hidden h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition-colors hover:border-primary hover:text-primary lg:flex"
+            aria-label={isSidebarCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            {isSidebarCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+          </button>
+        </div>
 
         <div className="flex items-center gap-2">
           <button
@@ -38,9 +58,18 @@ const UserDashboardNavbar = ({ activeSection, navItems, onSectionChange, unreadC
           </button>
           <button
             type="button"
-            className="hidden items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-slate-800 sm:inline-flex"
+            onClick={() => onSectionChange("profile")}
+            className={`hidden items-center justify-center gap-2 rounded-full px-1.5 py-1.5 pr-3 text-sm font-bold transition-colors sm:inline-flex ${
+              activeSection === "profile"
+                ? "bg-primary/10 text-slate-950"
+                : "text-slate-950 hover:bg-slate-100"
+            }`}
+            aria-label="Open profile"
           >
-            <LogOut size={16} /> Logout
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-extrabold text-white shadow-sm shadow-primary/25">
+              {initials}
+            </span>
+            <span>{userProfile.name}</span>
           </button>
         </div>
       </div>
