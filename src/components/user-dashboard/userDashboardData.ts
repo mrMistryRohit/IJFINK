@@ -172,6 +172,7 @@ export const publishedPapers: PublishedPaper[] = [
 ];
 
 export const articleTypes = [
+  "Research Article",
   "Original Research",
   "Review Article",
   "Case Report",
@@ -179,12 +180,4 @@ export const articleTypes = [
   "Letter / Commentary",
 ];
 
-export const subjectAreas = [
-  "Molecular Biology",
-  "Microbiology",
-  "Pharmaceutical Sciences",
-  "Biotechnology",
-  "Biomedical Sciences",
-  "Environmental Biology",
-];
 
