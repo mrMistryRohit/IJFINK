@@ -1,3 +1,5 @@
+import { getApiUrl } from "@/lib/apiConfig";
+
 export type AuthRole = "author" | "admin" | "editor" | "chief editor" | "publication team";
 
 export type LoginRequest = {
@@ -39,10 +41,6 @@ export type AuthResponse = {
   };
 };
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL ?? "https://api.ijfink.com";
-
-const normalizeBaseUrl = (value: string) => value.replace(/\/$/, "");
-
 async function parseJsonResponse(response: Response) {
   const text = await response.text();
 
@@ -58,7 +56,7 @@ async function parseJsonResponse(response: Response) {
 }
 
 export async function loginUser(payload: LoginRequest) {
-  const response = await fetch(`${normalizeBaseUrl(API_BASE_URL)}/api/auth/login`, {
+  const response = await fetch(getApiUrl("/api/auth/login"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -76,7 +74,7 @@ export async function loginUser(payload: LoginRequest) {
 }
 
 export async function registerAuthor(payload: AuthorRegisterRequest) {
-  const response = await fetch(`${normalizeBaseUrl(API_BASE_URL)}/api/auth/register`, {
+  const response = await fetch(getApiUrl("/api/auth/register"), {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -97,5 +95,31 @@ export function storeAuthSession(accessToken: string, user?: AuthUser) {
   localStorage.setItem("access_token", accessToken);
   if (user) {
     localStorage.setItem("auth_user", JSON.stringify(user));
+  }
+}
+
+export function clearAuthSession() {
+  localStorage.removeItem("access_token");
+  localStorage.removeItem("auth_user");
+  sessionStorage.removeItem("access_token");
+  sessionStorage.removeItem("auth_user");
+}
+
+export async function logoutUser() {
+  const accessToken = localStorage.getItem("access_token") ?? sessionStorage.getItem("access_token");
+
+  try {
+    if (accessToken) {
+      await fetch(getApiUrl("/api/auth/logout"), {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+    }
+  } catch {
+    // Local sign-out must still succeed when the API is unavailable.
+  } finally {
+    clearAuthSession();
   }
 }

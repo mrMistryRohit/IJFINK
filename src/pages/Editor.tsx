@@ -12,6 +12,7 @@ import ReviewerAssignmentPage from "@/components/editor-dashboard/ReviewerAssign
 import ReviewsReceivedPage from "@/components/editor-dashboard/ReviewsReceivedPage";
 import { assignedPapers, initialManuscripts } from "@/components/editor-dashboard/editorDashboardData";
 import type { EditorDashboardSection, EditorNavItem } from "@/components/editor-dashboard/types";
+import { logoutUser } from "@/lib/authApi";
 
 const navItems: EditorNavItem[] = [
   { id: "dashboard", label: "Editor Dashboard", icon: BarChart3 },
@@ -55,6 +56,11 @@ const Editor = () => {
 
   const navigateToSection = (section: EditorDashboardSection) => {
     navigate(`/editor/${editorSectionRoutes[section]}`);
+  };
+
+  const logout = async () => {
+    await logoutUser();
+    navigate("/login", { replace: true });
   };
 
   const sendEditsToAuthor = () => {
@@ -133,6 +139,7 @@ const Editor = () => {
         activeSection={activeSection}
         navItems={navItems}
         onSectionChange={navigateToSection}
+        onLogout={logout}
         isCollapsed={isSidebarCollapsed}
       />
       <EditorDashboardNavbar

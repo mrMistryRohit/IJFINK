@@ -6,28 +6,43 @@ type AdminOverviewProps = {
   activeUsers: number;
   queryCount: number;
   roleCounts: Record<UserRole, number>;
+  isSystemOnline: boolean | null;
 };
 
-const AdminOverview = ({ totalUsers, activeUsers, queryCount, roleCounts }: AdminOverviewProps) => {
+const AdminOverview = ({ totalUsers, activeUsers, queryCount, roleCounts, isSystemOnline }: AdminOverviewProps) => {
+  const systemStatus = isSystemOnline === null ? "Checking..." : isSystemOnline ? "System Online" : "System Offline";
+  const systemTone =
+    isSystemOnline === null
+      ? "text-amber-600 bg-amber-50"
+      : isSystemOnline
+        ? "text-emerald-600 bg-emerald-50"
+        : "text-rose-600 bg-rose-50";
   const dashboardStats = [
     { label: "Total Users", value: totalUsers, sub: "All registered accounts", icon: Users, tone: "text-blue-600 bg-blue-50" },
     { label: "Active Users", value: activeUsers, sub: "Currently enabled", icon: CheckCircle2, tone: "text-emerald-600 bg-emerald-50" },
     { label: "Submitted Queries", value: queryCount, sub: "Contact page entries", icon: MessageSquareText, tone: "text-amber-600 bg-amber-50" },
     { label: "Published Articles", value: 0, sub: "Live journal records", icon: FileText, tone: "text-purple-600 bg-purple-50" },
     { label: "Manuscripts", value: 0, sub: "Pending submissions", icon: ClipboardList, tone: "text-cyan-600 bg-cyan-50" },
-    { label: "Site Health", value: "98%", sub: "Static admin estimate", icon: Activity, tone: "text-rose-600 bg-rose-50" },
+    { label: "Site Health", value: systemStatus, sub: "Backend API status", icon: Activity, tone: systemTone },
   ];
 
   return (
     <section>
       <div className="mb-8 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <span className="text-xs font-bold uppercase tracking-widest text-primary">Admin Dashboard</span>
           <h2 className="mt-2 text-3xl font-extrabold text-slate-950">Website Statistics</h2>
           <p className="mt-1 text-sm text-slate-500">Overview of users, queries, publishing and platform activity.</p>
         </div>
-        <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700">
-          System online
+        <div
+          className={`rounded-xl border px-4 py-2 text-sm font-bold ${
+            isSystemOnline === null
+              ? "border-amber-100 bg-amber-50 text-amber-700"
+              : isSystemOnline
+                ? "border-emerald-100 bg-emerald-50 text-emerald-700"
+                : "border-rose-100 bg-rose-50 text-rose-700"
+          }`}
+        >
+          {systemStatus}
         </div>
       </div>
 
@@ -59,7 +74,10 @@ const AdminOverview = ({ totalUsers, activeUsers, queryCount, roleCounts }: Admi
                   <span className="text-slate-500">{roleCounts[role]}</span>
                 </div>
                 <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                  <div className="h-full rounded-full bg-primary" style={{ width: `${Math.max((roleCounts[role] / totalUsers) * 100, 4)}%` }} />
+                  <div
+                    className="h-full rounded-full bg-primary"
+                    style={{ width: `${totalUsers > 0 ? Math.max((roleCounts[role] / totalUsers) * 100, 4) : 0}%` }}
+                  />
                 </div>
               </div>
             ))}

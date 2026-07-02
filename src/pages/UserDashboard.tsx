@@ -19,6 +19,7 @@ import {
   userSubmissions,
 } from "@/components/user-dashboard/userDashboardData";
 import type { DashboardNavItem, UserDashboardSection } from "@/components/user-dashboard/types";
+import { logoutUser } from "@/lib/authApi";
 
 const navItems: DashboardNavItem[] = [
   { id: "overview", label: "Dashboard", icon: BarChart3 },
@@ -58,6 +59,11 @@ const UserDashboard = () => {
     navigate(`/user/${userSectionRoutes[section]}`);
   };
 
+  const logout = async () => {
+    await logoutUser();
+    navigate("/login", { replace: true });
+  };
+
   if (!activeSection) {
     return <Navigate to="/user/dashboard" replace />;
   }
@@ -80,7 +86,14 @@ const UserDashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-900">
+    <div
+      className="min-h-screen bg-slate-100 text-slate-900"
+      onClickCapture={(event) => {
+        if ((event.target as HTMLElement).closest('button[aria-label="Logout"]')) {
+          void logout();
+        }
+      }}
+    >
       <UserDashboardSidebar
         activeSection={activeSection}
         navItems={sidebarNavItems}

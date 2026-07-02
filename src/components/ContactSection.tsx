@@ -1,15 +1,36 @@
 import { motion } from "framer-motion";
 import { Mail, Phone, MapPin, Send } from "lucide-react";
 import { useState } from "react";
+import { toast } from "@/hooks/use-toast";
+import { submitContactQuery } from "@/lib/contactApi";
 
 const ContactSection = () => {
-  const [formData, setFormData] = useState({ name: "", email: "", subject: "", message: "" });
+  const [formData, setFormData] = useState({ firstName: "", lastName: "", email: "", subject: "", message: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Frontend only - just show alert
-    alert("Thank you for your message! We will get back to you soon.");
-    setFormData({ name: "", email: "", subject: "", message: "" });
+    setIsSubmitting(true);
+
+    try {
+      const response = await submitContactQuery({
+        first_name: formData.firstName.trim(),
+        last_name: formData.lastName.trim(),
+        email: formData.email.trim(),
+        subject: formData.subject.trim(),
+        message: formData.message.trim(),
+      });
+      toast({ title: "Message sent", description: response.message ?? "Your query has been submitted successfully." });
+      setFormData({ firstName: "", lastName: "", email: "", subject: "", message: "" });
+    } catch (error) {
+      toast({
+        title: "Message not sent",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -56,21 +77,29 @@ const ContactSection = () => {
             <div className="grid sm:grid-cols-2 gap-4">
               <input
                 type="text"
-                placeholder="Your Name"
+                placeholder="First Name"
                 required
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                value={formData.firstName}
+                onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                 className="w-full px-4 py-3 rounded-lg border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
               <input
-                type="email"
-                placeholder="Your Email"
+                type="text"
+                placeholder="Last Name"
                 required
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                value={formData.lastName}
+                onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                 className="w-full px-4 py-3 rounded-lg border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
               />
             </div>
+            <input
+              type="email"
+              placeholder="Your Email"
+              required
+              value={formData.email}
+              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+              className="w-full px-4 py-3 rounded-lg border border-border bg-card text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            />
             <input
               type="text"
               placeholder="Subject"
@@ -89,9 +118,10 @@ const ContactSection = () => {
             />
             <button
               type="submit"
+              disabled={isSubmitting}
               className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-7 py-3 rounded-lg font-semibold hover:opacity-90 transition-opacity"
             >
-              Send Message <Send size={16} />
+              {isSubmitting ? "Sending..." : "Send Message"} <Send size={16} />
             </button>
           </form>
         </div>

@@ -1,5 +1,4 @@
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { adminProfile } from "./adminDashboardData";
 import type { AdminNavItem, AdminTab } from "./types";
 
 type AdminDashboardNavbarProps = {
@@ -9,6 +8,7 @@ type AdminDashboardNavbarProps = {
   isSidebarCollapsed: boolean;
   onToggleSidebar: () => void;
   sidebarWidthClass: string;
+  profileName: string;
 };
 
 const AdminDashboardNavbar = ({
@@ -18,8 +18,9 @@ const AdminDashboardNavbar = ({
   isSidebarCollapsed,
   onToggleSidebar,
   sidebarWidthClass,
+  profileName,
 }: AdminDashboardNavbarProps) => {
-  const initials = adminProfile.name
+  const initials = profileName
     .split(" ")
     .map((part) => part[0])
     .join("")
@@ -52,7 +53,7 @@ const AdminDashboardNavbar = ({
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-extrabold text-white shadow-sm shadow-primary/25">
               {initials}
             </span>
-            <span>{adminProfile.name}</span>
+            <span>{profileName}</span>
           </button>
         </div>
       </div>

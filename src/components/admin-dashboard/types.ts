@@ -2,7 +2,7 @@ import type { LucideIcon } from "lucide-react";
 
 export type AdminTab = "dashboard" | "users" | "queries" | "profile";
 
-export type UserRole = "User" | "Reviewer" | "Editor" | "Admin";
+export type UserRole = "Author" | "Editor" | "Chief Editor" | "Admin" | "Publication Team";
 
 export type AdminUser = {
   id: number;
@@ -19,21 +19,34 @@ export type AdminNavItem = {
 };
 
 export type ContactQuery = {
+  queryId: number;
   id: string;
   firstName: string;
   lastName: string;
   email: string;
-  institution: string;
   subject: string;
-  status: string;
+  status: "Pending" | "Resolved";
   date: string;
+  createdAt: string;
   message: string;
+  resolvedAt?: string | null;
+  assignedAdmin?: string | null;
 };
 
 export type NewPrivilegedUser = {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
   confirmPassword: string;
-  role: Exclude<UserRole, "User">;
+  role: "Admin" | "Editor" | "Chief Editor" | "Publication Team";
+  institution: string;
+};
+
+export type AdminProfileData = {
+  userId: number;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
 };
