@@ -20,6 +20,32 @@ import UserDashboard from "./pages/UserDashboard";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./lib/ProtectedRoute";
 import ForgotPassword from "./pages/ForgotPassword";
+import { getStoredAuthUser } from "@/lib/adminApi";
+
+const ROLE_ROUTES: Record<string, string[]> = {
+  admin: ["/admin"],
+  editor: ["/editor"],
+  "chief editor": ["/editor"],
+  reviewer: ["/reviewer"],
+  author: ["/user"],
+  "publication team": ["/admin", "/editor"],
+};
+
+const RequireAuth = ({ allowedRoles, children }: { allowedRoles: string[]; children: React.ReactNode }) => {
+  const user = getStoredAuthUser();
+  const location = useLocation();
+
+  if (!user) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  if (!allowedRoles.map((r) => r.toLowerCase()).includes(user.role.toLowerCase())) {
+    const redirectPath = ROLE_ROUTES[user.role.toLowerCase()]?.[0] ?? "/user/dashboard";
+    return <Navigate to={redirectPath} replace />;
+  }
+
+  return <>{children}</>;
+};
 
 const queryClient = new QueryClient();
 
@@ -60,6 +86,15 @@ const App = () => (
           <Route path="/user-dashboard" element={<ProtectedRoute allowedRoles={["Author"]} verificationPath="/api/user/articles"><Navigate to="/user/dashboard" replace /></ProtectedRoute>} />
           <Route path="/user" element={<ProtectedRoute allowedRoles={["Author"]} verificationPath="/api/user/articles"><Navigate to="/user/dashboard" replace /></ProtectedRoute>} />
           <Route path="/user/*" element={<ProtectedRoute allowedRoles={["Author"]} verificationPath="/api/user/articles"><UserDashboard /></ProtectedRoute>} />
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/admin/*" element={<RequireAuth allowedRoles={["admin", "publication team"]}><Admin /></RequireAuth>} />
+          <Route path="/editor" element={<Navigate to="/editor/dashboard" replace />} />
+          <Route path="/editor/*" element={<RequireAuth allowedRoles={["editor", "chief editor", "publication team"]}><Editor /></RequireAuth>} />
+          <Route path="/reviewer" element={<Navigate to="/reviewer/dashboard" replace />} />
+          <Route path="/reviewer/*" element={<RequireAuth allowedRoles={["reviewer"]}><Reviewer /></RequireAuth>} />
+          <Route path="/user-dashboard" element={<Navigate to="/user/dashboard" replace />} />
+          <Route path="/user" element={<Navigate to="/user/dashboard" replace />} />
+          <Route path="/user/*" element={<RequireAuth allowedRoles={["author", "admin", "editor", "chief editor", "reviewer", "publication team"]}><UserDashboard /></RequireAuth>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
