@@ -1,0 +1,8 @@
+import { BadgeCheck, Hash, Mail, ShieldCheck } from "lucide-react";
+import type { AuthUser } from "@/lib/authApi";
+
+const PublicationProfilePanel = ({ user }: { user: AuthUser | null }) => {
+  const name = user?.display_name?.trim() || "Publication Team Member";
+  return <section><div className="mb-6"><h1 className="text-3xl font-extrabold text-slate-950">Publication team profile</h1><p className="mt-1 text-sm text-slate-500">Your account and workspace access details.</p></div><div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><div className="rounded-2xl border border-slate-100 bg-slate-50 p-7 text-center"><div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 text-primary"><ShieldCheck size={34} /></div><h2 className="mt-4 text-xl font-extrabold">{name}</h2><p className="text-sm font-bold text-primary">{user?.role || "Publication Team"}</p></div><div className="mt-5 grid gap-4 md:grid-cols-3">{[{ label: "Email", value: user?.email || "Not available", icon: Mail }, { label: "Account status", value: user?.status || "Not available", icon: BadgeCheck }, { label: "User ID", value: user?.user_id ? String(user.user_id) : "Not available", icon: Hash }].map((item) => <div key={item.label} className="rounded-2xl border border-slate-100 bg-slate-50 p-4"><item.icon size={18} className="text-primary" /><p className="mt-3 text-xs font-bold uppercase tracking-wider text-slate-400">{item.label}</p><p className="mt-1 break-words font-bold text-slate-800">{item.value}</p></div>)}</div></div></section>;
+};
+export default PublicationProfilePanel;
