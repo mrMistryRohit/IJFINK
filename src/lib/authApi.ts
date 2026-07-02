@@ -41,6 +41,20 @@ export type AuthResponse = {
   };
 };
 
+export function getAccessToken() {
+  return localStorage.getItem("access_token") ?? sessionStorage.getItem("access_token");
+}
+
+export function getStoredAuthUser() {
+  const value = localStorage.getItem("auth_user") ?? sessionStorage.getItem("auth_user");
+  if (!value) return null;
+  try {
+    return JSON.parse(value) as AuthUser;
+  } catch {
+    return null;
+  }
+}
+
 async function parseJsonResponse(response: Response) {
   const text = await response.text();
 
@@ -92,6 +106,7 @@ export async function registerAuthor(payload: AuthorRegisterRequest) {
 }
 
 export function storeAuthSession(accessToken: string, user?: AuthUser, rememberMe = false) {
+  clearAuthSession();
   const storage = rememberMe ? localStorage : sessionStorage;
   storage.setItem("access_token", accessToken);
   if (user) {
@@ -107,7 +122,8 @@ export function clearAuthSession() {
 }
 
 export async function logoutUser() {
-  const accessToken = localStorage.getItem("access_token") ?? sessionStorage.getItem("access_token");
+  const accessToken = getAccessToken();
+  clearAuthSession();
 
   try {
     if (accessToken) {
@@ -120,7 +136,5 @@ export async function logoutUser() {
     }
   } catch {
     // Local sign-out must still succeed when the API is unavailable.
-  } finally {
-    clearAuthSession();
   }
 }

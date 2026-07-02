@@ -8,6 +8,7 @@ import {
   BookOpen,
   CheckCircle2,
   Eye,
+  EyeOff,
   FileText,
   LockKeyhole,
   Mail,
@@ -21,6 +22,7 @@ const Login = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -144,13 +146,21 @@ const Login = () => {
                     <div className="relative">
                       <LockKeyhole className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
                       <input
-                        type="password"
+                        type={showPassword ? "text" : "password"}
                         placeholder="Enter your password"
                         value={password}
                         onChange={(event) => setPassword(event.target.value)}
                         className="h-14 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-11 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
                       />
-                      <Eye className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((current) => !current)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-primary"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                        aria-pressed={showPassword}
+                      >
+                        {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                      </button>
                     </div>
                   </div>
                   <div className="flex items-center justify-between gap-4 pt-1 text-sm">
@@ -163,9 +173,9 @@ const Login = () => {
                       />
                       Remember me
                     </label>
-                    <button type="button" className="font-bold text-primary hover:text-primary/80">
+                    <Link to="/forgot-password" className="font-bold text-primary hover:text-primary/80">
                       Forgot password?
-                    </button>
+                    </Link>
                   </div>
                   <button
                     type="submit"

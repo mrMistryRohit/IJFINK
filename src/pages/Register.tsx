@@ -3,11 +3,14 @@ import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
 import { registerAuthor } from "@/lib/authApi";
+import orcidIcon from "@/assets/ORCID-ID-icon-1-2041896511.png";
 import {
   BadgeCheck,
   BookOpenCheck,
   Building2,
   FileUp,
+  Eye,
+  EyeOff,
   LockKeyhole,
   Mail,
   Phone,
@@ -35,6 +38,8 @@ const Register = () => {
     confirmPassword: "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const updateField = (field: keyof typeof formData, value: string) => {
     setFormData((currentData) => ({
@@ -210,9 +215,9 @@ const Register = () => {
                         </div>
                       </div>
                       <div>
-                        <label className="mb-1 block text-sm font-bold text-slate-700">Orchid ID*</label>
+                        <label className="mb-1 block text-sm font-bold text-slate-700">ORCiD*</label>
                         <div className="relative">
-                          <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
+                          <img src={orcidIcon} alt="" className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 object-contain" />
                           <input
                             type="text"
                             placeholder="0000-0000-0000-0000"
@@ -231,25 +236,34 @@ const Register = () => {
                         <div className="relative">
                           <LockKeyhole className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
                           <input
-                            type="password"
+                            type={showPassword ? "text" : "password"}
                             placeholder="Create password"
                             value={formData.password}
                             onChange={(event) => updateField("password", event.target.value)}
-                            className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
+                            className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-11 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
                             required
                           />
+                          <button type="button" onClick={() => setShowPassword((current) => !current)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-primary" aria-label={showPassword ? "Hide password" : "Show password"} aria-pressed={showPassword}>
+                            {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                          </button>
                         </div>
                       </div>
                       <div>
                         <label className="mb-1 block text-sm font-bold text-slate-700">Confirm Password*</label>
+                        <div className="relative">
+                          <LockKeyhole className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={17} />
                           <input
-                            type="password"
+                            type={showConfirmPassword ? "text" : "password"}
                             placeholder="Confirm password"
                             value={formData.confirmPassword}
                             onChange={(event) => updateField("confirmPassword", event.target.value)}
-                            className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-4 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
+                            className="h-11 w-full rounded-xl border border-slate-200 bg-white pl-11 pr-11 text-sm text-slate-900 placeholder:text-slate-400 transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/25"
                             required
                           />
+                          <button type="button" onClick={() => setShowConfirmPassword((current) => !current)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors hover:text-primary" aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"} aria-pressed={showConfirmPassword}>
+                            {showConfirmPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                          </button>
+                        </div>
                       </div>
                     </div>
 

@@ -1,6 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 
-export type AdminTab = "dashboard" | "users" | "queries" | "profile";
+export type AdminTab = "dashboard" | "screening" | "articles" | "users" | "queries" | "profile";
 
 export type UserRole = "Author" | "Editor" | "Chief Editor" | "Admin" | "Publication Team";
 
