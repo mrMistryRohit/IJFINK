@@ -1,27 +1,26 @@
-import { Bell, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import type { DashboardNavItem, UserDashboardSection } from "./types";
-import { userProfile } from "./userDashboardData";
+import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import type { AdminNavItem, AdminTab } from "./types";
 
-type UserDashboardNavbarProps = {
-  activeSection: UserDashboardSection;
-  navItems: DashboardNavItem[];
-  onSectionChange: (section: UserDashboardSection) => void;
-  unreadCount: number;
+type AdminDashboardNavbarProps = {
+  activeTab: AdminTab;
+  navItems: AdminNavItem[];
+  onTabChange: (tab: AdminTab) => void;
   isSidebarCollapsed: boolean;
   onToggleSidebar: () => void;
   sidebarWidthClass: string;
+  profileName: string;
 };
 
-const UserDashboardNavbar = ({
-  activeSection,
+const AdminDashboardNavbar = ({
+  activeTab,
   navItems,
-  onSectionChange,
-  unreadCount,
+  onTabChange,
   isSidebarCollapsed,
   onToggleSidebar,
   sidebarWidthClass,
-}: UserDashboardNavbarProps) => {
-  const initials = userProfile.name
+  profileName,
+}: AdminDashboardNavbarProps) => {
+  const initials = profileName
     .split(" ")
     .map((part) => part[0])
     .join("")
@@ -45,31 +44,16 @@ const UserDashboardNavbar = ({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => onSectionChange("notifications")}
-            className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 text-slate-600 transition-colors hover:border-primary hover:text-primary"
-            aria-label="Open notifications"
-          >
-            <Bell size={18} />
-            {unreadCount > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-600 px-1 text-[11px] font-bold text-white">
-                {unreadCount}
-              </span>
-            )}
-          </button>
-          <button
-            type="button"
-            onClick={() => onSectionChange("profile")}
+            onClick={() => onTabChange("profile")}
             className={`hidden items-center justify-center gap-2 rounded-full px-1.5 py-1.5 pr-3 text-sm font-bold transition-colors sm:inline-flex ${
-              activeSection === "profile"
-                ? "bg-primary/10 text-slate-950"
-                : "text-slate-950 hover:bg-slate-100"
+              activeTab === "profile" ? "bg-primary/10 text-slate-950" : "text-slate-950 hover:bg-slate-100"
             }`}
-            aria-label="Open profile"
+            aria-label="Open admin profile"
           >
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-extrabold text-white shadow-sm shadow-primary/25">
               {initials}
             </span>
-            <span>{userProfile.name}</span>
+            <span>{profileName}</span>
           </button>
         </div>
       </div>
@@ -80,9 +64,9 @@ const UserDashboardNavbar = ({
             <button
               key={item.id}
               type="button"
-              onClick={() => onSectionChange(item.id)}
+              onClick={() => onTabChange(item.id)}
               className={`inline-flex min-h-10 flex-shrink-0 items-center gap-2 rounded-xl px-4 text-xs font-bold ${
-                activeSection === item.id ? "bg-primary text-white" : "bg-slate-100 text-slate-600"
+                activeTab === item.id ? "bg-primary text-white" : "bg-slate-100 text-slate-600"
               }`}
             >
               <item.icon size={15} />
@@ -95,4 +79,4 @@ const UserDashboardNavbar = ({
   );
 };
 
-export default UserDashboardNavbar;
+export default AdminDashboardNavbar;

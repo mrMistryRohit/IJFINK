@@ -201,14 +201,12 @@ const SubmitPaper = () => {
               Our online submission portal makes it easy to upload your manuscript, cover letter and supplementary materials in minutes.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <a
-                href="/"
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                to="/user/submit-paper/details"
                 className="inline-flex items-center gap-2 bg-primary text-white px-8 py-4 rounded-xl font-bold hover:bg-primary/90 transition-all hover:shadow-xl hover:shadow-primary/30"
               >
                 <Upload size={18} /> Go to Submission Portal
-              </a>
+              </Link>
               <Link
                 to="/contact"
                 className="inline-flex items-center gap-2 border border-white/20 text-white px-8 py-4 rounded-xl font-semibold hover:bg-white/10 transition-colors"

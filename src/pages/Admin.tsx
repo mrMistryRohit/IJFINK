@@ -1,125 +1,187 @@
-import { useMemo, useState } from "react";
-import {
-  Activity,
-  BarChart3,
-  CheckCircle2,
-  ClipboardList,
-  Eye,
-  FileText,
-  KeyRound,
-  LogOut,
-  Mail,
-  MessageSquareText,
-  Plus,
-  ShieldCheck,
-  UserCog,
-  Users,
-  X,
-} from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
+import { BarChart3, MessageSquareText, UserCog, Users } from "lucide-react";
+import AdminDashboardNavbar from "@/components/admin-dashboard/AdminDashboardNavbar";
+import AdminDashboardSidebar from "@/components/admin-dashboard/AdminDashboardSidebar";
+import AdminOverview from "@/components/admin-dashboard/AdminOverview";
+import AdminProfilePanel from "@/components/admin-dashboard/AdminProfilePanel";
+import ContactQueriesPage from "@/components/admin-dashboard/ContactQueriesPage";
+import CreateUserModal from "@/components/admin-dashboard/CreateUserModal";
+import QueryDetailsModal from "@/components/admin-dashboard/QueryDetailsModal";
+import UserManagementPage from "@/components/admin-dashboard/UserManagementPage";
+import type { AdminNavItem, AdminProfileData, AdminTab, AdminUser, ContactQuery, NewPrivilegedUser, UserRole } from "@/components/admin-dashboard/types";
+import { toast } from "@/hooks/use-toast";
+import { createAdminUser, getCurrentAdminProfile, getStoredAuthUser, getAdminUsers, updateAdminUserStatus } from "@/lib/adminApi";
+import type { AdminApiUser } from "@/lib/adminApi";
+import { getContactQueries, getContactQuery, updateContactQueryStatus } from "@/lib/contactApi";
+import type { ContactQueryApi } from "@/lib/contactApi";
+import { logoutUser } from "@/lib/authApi";
+import { checkApiHealth } from "@/lib/healthApi";
 
-type AdminTab = "dashboard" | "users" | "queries" | "profile";
-type UserRole = "User" | "Reviewer" | "Editor" | "Admin";
-
-type ContactQuery = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  institution: string;
-  subject: string;
-  status: string;
-  date: string;
-  message: string;
-};
-
-const sidebarItems: Array<{ id: AdminTab; label: string; icon: typeof BarChart3 }> = [
+const navItems: AdminNavItem[] = [
   { id: "dashboard", label: "Admin Dashboard", icon: BarChart3 },
   { id: "users", label: "User Management", icon: Users },
   { id: "queries", label: "Contact Queries", icon: MessageSquareText },
   { id: "profile", label: "Admin Profile", icon: UserCog },
 ];
 
-const initialUsers = [
-  { id: 1, name: "Dr. Sarah Mitchell", email: "sarah.mitchell@journal.org", role: "Editor" as UserRole, status: "Active" },
-  { id: 2, name: "Prof. Rakesh Sen", email: "rakesh.sen@review.edu", role: "Reviewer" as UserRole, status: "Active" },
-  { id: 3, name: "Ananya Das", email: "ananya.das@research.edu", role: "User" as UserRole, status: "Inactive" },
-  { id: 4, name: "Admin Operations", email: "admin@ijfink.com", role: "Admin" as UserRole, status: "Active" },
-  { id: 5, name: "Dr. Meera Kapoor", email: "meera.kapoor@journal.org", role: "Editor" as UserRole, status: "Active" },
-  { id: 6, name: "Rahul Verma", email: "rahul.verma@institution.edu", role: "User" as UserRole, status: "Active" },
-];
-
-const contactQueries: ContactQuery[] = [
-  {
-    id: "CQ-1042",
-    firstName: "Arjun",
-    lastName: "Patel",
-    email: "arjun.patel@bio.edu",
-    institution: "University of Calcutta",
-    subject: "Manuscript Submission",
-    status: "New",
-    date: "21 May 2026",
-    message:
-      "I would like to know the expected timeline after submitting an original research paper. Please share the next steps for manuscript screening and editor assignment.",
-  },
-  {
-    id: "CQ-1041",
-    firstName: "Lin",
-    lastName: "Wei",
-    email: "lin.wei@lab.org",
-    institution: "Molecular Biology Research Lab",
-    subject: "Editorial Enquiry",
-    status: "In Review",
-    date: "20 May 2026",
-    message:
-      "I received a reviewer invitation and want to confirm the scope, expected review format and final submission date for the reviewer comments.",
-  },
-  {
-    id: "CQ-1040",
-    firstName: "Priya",
-    lastName: "Shah",
-    email: "priya.shah@pharma.edu",
-    institution: "National Pharmaceutical Institute",
-    subject: "Publication Fees / APC",
-    status: "Resolved",
-    date: "19 May 2026",
-    message:
-      "Please provide the article processing charge details, payment schedule and whether any waiver is available for early career researchers.",
-  },
-  {
-    id: "CQ-1039",
-    firstName: "Michael",
-    lastName: "Brown",
-    email: "m.brown@research.net",
-    institution: "Independent Research Network",
-    subject: "Other",
-    status: "Resolved",
-    date: "18 May 2026",
-    message:
-      "I am looking for indexing information and citation database coverage for published articles in the journal.",
-  },
-];
-
-const adminProfile = {
-  name: "Admin Operations",
-  email: "admin@IJFINK.com",
-  role: "Super Admin",
-  department: "Journal Administration",
-  lastLogin: "21 May 2026, 04:10 PM",
+const adminSectionRoutes: Record<AdminTab, string> = {
+  dashboard: "dashboard",
+  users: "user-management",
+  queries: "contact-queries",
+  profile: "profile",
 };
 
+const adminRouteSections = Object.fromEntries(
+  Object.entries(adminSectionRoutes).map(([section, route]) => [route, section])
+) as Record<string, AdminTab>;
+
+const emptyNewUser: NewPrivilegedUser = {
+  firstName: "",
+  lastName: "",
+  email: "",
+  password: "",
+  confirmPassword: "",
+  role: "Editor",
+  institution: "",
+};
+
+const mapApiUser = (user: AdminApiUser): AdminUser => ({
+  id: user.user_id,
+  name: user.display_name?.trim() || user.email,
+  email: user.email,
+  role: (user.role === "Editor" && user.is_chief_editor ? "Chief Editor" : user.role) as UserRole,
+  status: user.status,
+});
+
+const mapAdminProfile = (user: AdminApiUser): AdminProfileData => ({
+  userId: user.user_id,
+  name: user.display_name?.trim() || user.email,
+  email: user.email,
+  role: user.role,
+  status: user.status,
+});
+
+const getInitialAdminProfile = (): AdminProfileData | null => {
+  const user = getStoredAuthUser();
+  if (!user) return null;
+
+  return {
+    userId: user.user_id,
+    name: user.display_name?.trim() || user.email,
+    email: user.email,
+    role: user.role,
+    status: user.status,
+  };
+};
+
+const formatQueryDate = (value: string) => {
+  const parsed = new Date(value.replace(" ", "T"));
+  return Number.isNaN(parsed.getTime())
+    ? value
+    : parsed.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+};
+
+const mapContactQuery = (query: ContactQueryApi): ContactQuery => ({
+  queryId: query.query_id,
+  id: `CQ-${query.query_id}`,
+  firstName: query.first_name,
+  lastName: query.last_name,
+  email: query.email,
+  subject: query.subject,
+  status: query.status,
+  date: formatQueryDate(query.created_at),
+  createdAt: query.created_at,
+  message: query.message,
+  resolvedAt: query.resolved_at,
+  assignedAdmin: query.assigned_admin,
+});
+
 const Admin = () => {
-  const [activeTab, setActiveTab] = useState<AdminTab>("dashboard");
-  const [users, setUsers] = useState(initialUsers);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [users, setUsers] = useState<ReturnType<typeof mapApiUser>[]>([]);
+  const [isLoadingUsers, setIsLoadingUsers] = useState(true);
+  const [usersError, setUsersError] = useState("");
+  const [adminProfile, setAdminProfile] = useState<AdminProfileData | null>(getInitialAdminProfile);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
+  const [profileError, setProfileError] = useState("");
+  const [contactQueries, setContactQueries] = useState<ContactQuery[]>([]);
+  const [isLoadingQueries, setIsLoadingQueries] = useState(true);
+  const [queriesError, setQueriesError] = useState("");
+  const [isUpdatingQuery, setIsUpdatingQuery] = useState(false);
+  const [isSystemOnline, setIsSystemOnline] = useState<boolean | null>(null);
+  const [updatingUserId, setUpdatingUserId] = useState<number | null>(null);
+  const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [showCreateUser, setShowCreateUser] = useState(false);
   const [selectedQuery, setSelectedQuery] = useState<ContactQuery | null>(null);
   const [createUserError, setCreateUserError] = useState("");
-  const [newUser, setNewUser] = useState({
-    name: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
-    role: "Reviewer" as Exclude<UserRole, "User">,
-  });
+  const [newUser, setNewUser] = useState<NewPrivilegedUser>(emptyNewUser);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const sidebarWidthClass = isSidebarCollapsed ? "lg:ml-16" : "lg:ml-[12.5rem]";
+  const sectionRoute = location.pathname.split("/").filter(Boolean)[1];
+  const activeTab = sectionRoute ? adminRouteSections[sectionRoute] : undefined;
+
+  useEffect(() => {
+    let isCurrent = true;
+
+    const loadUsers = async () => {
+      try {
+        const apiUsers = await getAdminUsers();
+        if (isCurrent) setUsers(apiUsers.map(mapApiUser));
+      } catch (error) {
+        if (isCurrent) setUsersError(error instanceof Error ? error.message : "Unable to load users.");
+      } finally {
+        if (isCurrent) setIsLoadingUsers(false);
+      }
+    };
+
+    const loadProfile = async () => {
+      try {
+        const profile = await getCurrentAdminProfile();
+        if (isCurrent) setAdminProfile(mapAdminProfile(profile));
+      } catch (error) {
+        if (isCurrent) setProfileError(error instanceof Error ? error.message : "Unable to load the admin profile.");
+      } finally {
+        if (isCurrent) setIsLoadingProfile(false);
+      }
+    };
+
+    const loadQueries = async () => {
+      try {
+        const queries = await getContactQueries();
+        if (isCurrent) setContactQueries(queries.map(mapContactQuery));
+      } catch (error) {
+        if (isCurrent) setQueriesError(error instanceof Error ? error.message : "Unable to load contact queries.");
+      } finally {
+        if (isCurrent) setIsLoadingQueries(false);
+      }
+    };
+
+    const loadHealth = async () => {
+      const isOnline = await checkApiHealth();
+      if (isCurrent) setIsSystemOnline(isOnline);
+    };
+
+    loadUsers();
+    loadProfile();
+    loadQueries();
+    loadHealth();
+    const healthInterval = window.setInterval(loadHealth, 30000);
+    return () => {
+      isCurrent = false;
+      window.clearInterval(healthInterval);
+    };
+  }, []);
+
+  const navigateToTab = (tab: AdminTab) => {
+    navigate(`/admin/${adminSectionRoutes[tab]}`);
+  };
+
+  const logout = async () => {
+    await logoutUser();
+    navigate("/login", { replace: true });
+  };
 
   const roleCounts = useMemo(
     () =>
@@ -128,31 +190,132 @@ const Admin = () => {
           ...counts,
           [user.role]: counts[user.role] + 1,
         }),
-        { User: 0, Reviewer: 0, Editor: 0, Admin: 0 } as Record<UserRole, number>
+        { Author: 0, Editor: 0, "Chief Editor": 0, Admin: 0, "Publication Team": 0 } as Record<UserRole, number>
       ),
     [users]
   );
 
-  const dashboardStats = [
-    { label: "Total Users", value: users.length, sub: "All registered accounts", icon: Users, tone: "text-blue-600 bg-blue-50" },
-    { label: "Active Users", value: users.filter((user) => user.status === "Active").length, sub: "Currently enabled", icon: CheckCircle2, tone: "text-emerald-600 bg-emerald-50" },
-    { label: "Submitted Queries", value: contactQueries.length, sub: "Contact page entries", icon: MessageSquareText, tone: "text-amber-600 bg-amber-50" },
-    { label: "Published Articles", value: 0, sub: "Live journal records", icon: FileText, tone: "text-purple-600 bg-purple-50" },
-    { label: "Manuscripts", value: 0, sub: "Pending submissions", icon: ClipboardList, tone: "text-cyan-600 bg-cyan-50" },
-    { label: "Site Health", value: "98%", sub: "Static admin estimate", icon: Activity, tone: "text-rose-600 bg-rose-50" },
-  ];
+  const retryUsers = async () => {
+    setIsLoadingUsers(true);
+    setUsersError("");
 
-  const toggleUserStatus = (userId: number) => {
-    setUsers((currentUsers) =>
-      currentUsers.map((user) =>
-        user.id === userId ? { ...user, status: user.status === "Active" ? "Inactive" : "Active" } : user
-      )
-    );
+    try {
+      const apiUsers = await getAdminUsers();
+      setUsers(apiUsers.map(mapApiUser));
+    } catch (error) {
+      setUsersError(error instanceof Error ? error.message : "Unable to load users.");
+    } finally {
+      setIsLoadingUsers(false);
+    }
   };
 
-  const createPrivilegedUser = () => {
-    if (!newUser.name.trim() || !newUser.email.trim() || !newUser.password || !newUser.confirmPassword) {
+  const retryQueries = async () => {
+    setIsLoadingQueries(true);
+    setQueriesError("");
+
+    try {
+      const queries = await getContactQueries();
+      setContactQueries(queries.map(mapContactQuery));
+    } catch (error) {
+      setQueriesError(error instanceof Error ? error.message : "Unable to load contact queries.");
+    } finally {
+      setIsLoadingQueries(false);
+    }
+  };
+
+  const openQueryDetails = async (queryId: number) => {
+    const preview = contactQueries.find((query) => query.queryId === queryId);
+    if (preview) setSelectedQuery(preview);
+
+    try {
+      const query = mapContactQuery(await getContactQuery(queryId));
+      setSelectedQuery(query);
+      setContactQueries((current) => current.map((item) => (item.queryId === queryId ? query : item)));
+    } catch (error) {
+      setSelectedQuery(null);
+      toast({
+        title: "Query details unavailable",
+        description: error instanceof Error ? error.message : "Unable to load this contact query.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const changeQueryStatus = async (status: "Pending" | "Resolved") => {
+    if (!selectedQuery) return;
+
+    setIsUpdatingQuery(true);
+    try {
+      const response = await updateContactQueryStatus(selectedQuery.queryId, status);
+      const resolvedAt = response.data?.resolved_at ?? null;
+      setContactQueries((current) =>
+        current.map((query) =>
+          query.queryId === selectedQuery.queryId ? { ...query, status, resolvedAt } : query
+        )
+      );
+      setSelectedQuery((current) => (current ? { ...current, status, resolvedAt } : current));
+      toast({
+        title: status === "Resolved" ? "Query resolved" : "Query reopened",
+        description: response.message ?? `The query is now ${status.toLowerCase()}.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Status update failed",
+        description: error instanceof Error ? error.message : "Unable to update the query.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUpdatingQuery(false);
+    }
+  };
+
+  const toggleUserStatus = async (userId: number) => {
+    const user = users.find((item) => item.id === userId);
+    if (!user) return;
+
+    setUpdatingUserId(userId);
+    try {
+      const response = await updateAdminUserStatus(userId, user.status === "Active" ? "Inactive" : "Active");
+      const updatedUser = mapApiUser(response.data!.user);
+      if (user.role === "Chief Editor" && updatedUser.role === "Editor") {
+        updatedUser.role = "Chief Editor";
+      }
+      setUsers((currentUsers) => currentUsers.map((item) => (item.id === userId ? updatedUser : item)));
+      toast({
+        title: "User status updated",
+        description: response.message ?? `${updatedUser.name} is now ${updatedUser.status.toLowerCase()}.`,
+      });
+    } catch (error) {
+      toast({
+        title: "Status update failed",
+        description: error instanceof Error ? error.message : "Unable to update this user.",
+        variant: "destructive",
+      });
+    } finally {
+      setUpdatingUserId(null);
+    }
+  };
+
+  const openCreateUserModal = () => {
+    setCreateUserError("");
+    setShowCreateUser(true);
+  };
+
+  const closeCreateUserModal = () => {
+    setShowCreateUser(false);
+    setCreateUserError("");
+  };
+
+  const createPrivilegedUser = async () => {
+    if (!newUser.firstName.trim() || !newUser.lastName.trim() || !newUser.email.trim() || !newUser.password || !newUser.confirmPassword) {
       setCreateUserError("Complete all fields before creating the user.");
+      return;
+    }
+
+    const isEditorAccount = newUser.role === "Editor" || newUser.role === "Chief Editor";
+
+    if (isEditorAccount && !newUser.institution.trim()) {
+      setCreateUserError("Institution is required when creating an Editor or Chief Editor.");
       return;
     }
 
@@ -161,500 +324,121 @@ const Admin = () => {
       return;
     }
 
-    setUsers((currentUsers) => [
-      ...currentUsers,
-      {
-        id: Math.max(...currentUsers.map((user) => user.id)) + 1,
-        name: newUser.name.trim(),
-        email: newUser.email.trim(),
-        role: newUser.role,
-        status: "Active",
-      },
-    ]);
-    setNewUser({ name: "", email: "", password: "", confirmPassword: "", role: "Reviewer" });
+    setIsCreatingUser(true);
     setCreateUserError("");
-    setShowCreateUser(false);
+
+    try {
+      const apiRole =
+        newUser.role === "Publication Team"
+          ? "publication team"
+          : isEditorAccount
+            ? "editor"
+            : "admin";
+      const response = await createAdminUser({
+        first_name: newUser.firstName.trim(),
+        last_name: newUser.lastName.trim(),
+        email: newUser.email.trim(),
+        password: newUser.password,
+        confirm_password: newUser.confirmPassword,
+        role: apiRole,
+        ...(isEditorAccount ? { institution: newUser.institution.trim() } : {}),
+        ...(newUser.role === "Chief Editor" ? { is_chief_editor: true } : {}),
+      });
+      const createdUser = mapApiUser({
+        ...response.data!.user,
+        is_chief_editor: newUser.role === "Chief Editor",
+      });
+      setUsers((currentUsers) => [...currentUsers, createdUser]);
+      setNewUser(emptyNewUser);
+      setShowCreateUser(false);
+      toast({
+        title: `${newUser.role} created`,
+        description: response.message ?? "The account is ready to use.",
+      });
+    } catch (error) {
+      setCreateUserError(error instanceof Error ? error.message : "Unable to create this account.");
+    } finally {
+      setIsCreatingUser(false);
+    }
+  };
+
+  if (!activeTab) {
+    return <Navigate to="/admin/dashboard" replace />;
+  }
+
+  const sectionContent = {
+    dashboard: (
+      <AdminOverview
+        totalUsers={users.length}
+        activeUsers={users.filter((user) => user.status === "Active").length}
+        queryCount={contactQueries.length}
+        roleCounts={roleCounts}
+        isSystemOnline={isSystemOnline}
+      />
+    ),
+    users: (
+      <UserManagementPage
+        users={users}
+        isLoading={isLoadingUsers}
+        loadError={usersError}
+        updatingUserId={updatingUserId}
+        onCreateUserClick={openCreateUserModal}
+        onRetry={retryUsers}
+        onToggleUserStatus={toggleUserStatus}
+      />
+    ),
+    queries: (
+      <ContactQueriesPage
+        queries={contactQueries}
+        isLoading={isLoadingQueries}
+        loadError={queriesError}
+        onRetry={retryQueries}
+        onSelectQuery={openQueryDetails}
+      />
+    ),
+    profile: <AdminProfilePanel profile={adminProfile} isLoading={isLoadingProfile} error={profileError} />,
   };
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
-      <div className="flex min-h-screen">
-        <aside className="fixed inset-y-0 left-0 z-20 hidden w-72 border-r border-white/10 bg-gradient-to-b from-[hsl(220,55%,10%)] via-[hsl(220,48%,13%)] to-[hsl(168,55%,14%)] p-5 text-white lg:flex lg:flex-col">
-          <div className="mb-8 rounded-2xl border border-white/10 bg-white/[0.06] p-4">
-            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary text-white">
-              <ShieldCheck size={21} />
-            </div>
-            <h1 className="mt-4 text-xl font-extrabold">Admin Panel</h1>
-            <p className="mt-1 text-sm leading-relaxed text-white/55">International Journal for Invention of Nobel Knowledge management workspace.</p>
-          </div>
-
-          <nav className="space-y-2">
-            {sidebarItems.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => setActiveTab(item.id)}
-                className={`flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-bold transition-colors ${
-                  activeTab === item.id
-                    ? "bg-primary text-white shadow-lg shadow-primary/20"
-                    : "text-white/65 hover:bg-white/[0.08] hover:text-white"
-                }`}
-              >
-                <item.icon size={18} />
-                {item.label}
-              </button>
-            ))}
-          </nav>
-
-          <button
-            type="button"
-            className="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-slate-800"
-          >
-            <LogOut size={17} /> Logout
-          </button>
-        </aside>
-
-        <main className="min-w-0 flex-1 lg:pl-72">
-          <div className="border-b border-slate-200 bg-white px-4 py-4 lg:hidden">
-            <div className="mb-3 flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-white">
-                <ShieldCheck size={19} />
-              </div>
-              <div>
-                <h1 className="font-extrabold">Admin Panel</h1>
-                <p className="text-xs text-slate-500">International Journal for Invention of Nobel Knowledge</p>
-              </div>
-            </div>
-            <div className="flex gap-2 overflow-x-auto">
-              {sidebarItems.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setActiveTab(item.id)}
-                  className={`whitespace-nowrap rounded-xl px-4 py-2 text-xs font-bold ${
-                    activeTab === item.id ? "bg-primary text-white" : "bg-slate-100 text-slate-600"
-                  }`}
-                >
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="p-5 md:p-8">
-            {activeTab === "dashboard" && (
-              <section>
-                <div className="mb-8 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-                  <div>
-                    <span className="text-xs font-bold uppercase tracking-widest text-primary">Admin Dashboard</span>
-                    <h2 className="mt-2 text-3xl font-extrabold text-slate-950">Website Statistics</h2>
-                    <p className="mt-1 text-sm text-slate-500">Overview of users, queries, publishing and platform activity.</p>
-                  </div>
-                  <div className="rounded-xl border border-emerald-100 bg-emerald-50 px-4 py-2 text-sm font-bold text-emerald-700">
-                    System online
-                  </div>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-                  {dashboardStats.map((stat) => (
-                    <div key={stat.label} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                      <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <p className="text-sm font-bold text-slate-500">{stat.label}</p>
-                          <p className="mt-2 text-3xl font-extrabold text-slate-950">{stat.value}</p>
-                          <p className="mt-1 text-xs font-medium text-slate-400">{stat.sub}</p>
-                        </div>
-                        <div className={`flex h-11 w-11 items-center justify-center rounded-xl ${stat.tone}`}>
-                          <stat.icon size={20} />
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                <div className="mt-6 grid gap-4 xl:grid-cols-[1fr_0.8fr]">
-                  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                    <h3 className="font-extrabold text-slate-950">Role Distribution</h3>
-                    <div className="mt-5 space-y-4">
-                      {(Object.keys(roleCounts) as UserRole[]).map((role) => (
-                        <div key={role}>
-                          <div className="mb-2 flex justify-between text-sm">
-                            <span className="font-bold text-slate-700">{role}</span>
-                            <span className="text-slate-500">{roleCounts[role]}</span>
-                          </div>
-                          <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                            <div
-                              className="h-full rounded-full bg-primary"
-                              style={{ width: `${Math.max((roleCounts[role] / users.length) * 100, 4)}%` }}
-                            />
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-                    <h3 className="font-extrabold text-slate-950">Recent Activity</h3>
-                    <div className="mt-4 space-y-3">
-                      {["New contact query received", "Reviewer account activated", "Editor profile reviewed", "Dashboard statistics refreshed"].map(
-                        (activity) => (
-                          <div key={activity} className="flex items-center gap-3 rounded-xl bg-slate-50 p-3 text-sm text-slate-600">
-                            <CheckCircle2 size={16} className="text-primary" />
-                            {activity}
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </section>
-            )}
-
-            {activeTab === "users" && (
-              <section>
-                <div className="mb-6 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-                  <div>
-                    <span className="text-xs font-bold uppercase tracking-widest text-primary">Second Page</span>
-                    <h2 className="mt-2 text-3xl font-extrabold text-slate-950">User Management</h2>
-                    <p className="mt-1 text-sm text-slate-500">View users, reviewers, editors and admins. Activate or deactivate accounts.</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setCreateUserError("");
-                      setShowCreateUser(true);
-                    }}
-                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-primary/90"
-                  >
-                    <Plus size={17} /> Create Admin, Editor or Reviewer
-                  </button>
-                </div>
-
-                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[760px] text-left text-sm">
-                      <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
-                        <tr>
-                          <th className="px-5 py-4">Name</th>
-                          <th className="px-5 py-4">Email</th>
-                          <th className="px-5 py-4">Role</th>
-                          <th className="px-5 py-4">Status</th>
-                          <th className="px-5 py-4 text-right">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {users.map((user) => (
-                          <tr key={user.id} className="hover:bg-slate-50/70">
-                            <td className="px-5 py-4 font-bold text-slate-900">{user.name}</td>
-                            <td className="px-5 py-4 text-slate-500">{user.email}</td>
-                            <td className="px-5 py-4">
-                              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">{user.role}</span>
-                            </td>
-                            <td className="px-5 py-4">
-                              <span
-                                className={`rounded-full px-3 py-1 text-xs font-bold ${
-                                  user.status === "Active" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
-                                }`}
-                              >
-                                {user.status}
-                              </span>
-                            </td>
-                            <td className="px-5 py-4 text-right">
-                              <button
-                                type="button"
-                                onClick={() => toggleUserStatus(user.id)}
-                                className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 transition-colors hover:border-primary hover:text-primary"
-                              >
-                                {user.status === "Active" ? "Deactivate" : "Activate"}
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </section>
-            )}
-
-            {activeTab === "queries" && (
-              <section>
-                <div className="mb-6">
-                  <span className="text-xs font-bold uppercase tracking-widest text-primary">Third Page</span>
-                  <h2 className="mt-2 text-3xl font-extrabold text-slate-950">Contact Queries</h2>
-                  <p className="mt-1 text-sm text-slate-500">Submitted messages from the contact page are listed here.</p>
-                </div>
-
-                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                  <div className="overflow-x-auto">
-                    <table className="w-full min-w-[1120px] text-left text-sm">
-                      <thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500">
-                        <tr>
-                          <th className="px-5 py-4">Query ID</th>
-                          <th className="px-5 py-4">First Name</th>
-                          <th className="px-5 py-4">Last Name</th>
-                          <th className="px-5 py-4">Email Address</th>
-                          <th className="px-5 py-4">Institution</th>
-                          <th className="px-5 py-4">Subject</th>
-                          <th className="px-5 py-4">Status</th>
-                          <th className="px-5 py-4">Date</th>
-                          <th className="px-5 py-4 text-right">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
-                        {contactQueries.map((query) => (
-                          <tr key={query.id} className="hover:bg-slate-50/70">
-                            <td className="px-5 py-4 font-bold text-slate-900">{query.id}</td>
-                            <td className="px-5 py-4 text-slate-700">{query.firstName}</td>
-                            <td className="px-5 py-4 text-slate-700">{query.lastName}</td>
-                            <td className="px-5 py-4 text-slate-500">{query.email}</td>
-                            <td className="max-w-[220px] px-5 py-4 text-slate-500">{query.institution}</td>
-                            <td className="px-5 py-4 font-medium text-slate-800">{query.subject}</td>
-                            <td className="px-5 py-4">
-                              <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-bold text-primary">{query.status}</span>
-                            </td>
-                            <td className="px-5 py-4 text-slate-500">{query.date}</td>
-                            <td className="px-5 py-4 text-right">
-                              <button
-                                type="button"
-                                onClick={() => setSelectedQuery(query)}
-                                className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 transition-colors hover:border-primary hover:text-primary"
-                              >
-                                <Eye size={15} /> View
-                              </button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </section>
-            )}
-
-            {activeTab === "profile" && (
-              <section>
-                <div className="mb-6">
-                  <span className="text-xs font-bold uppercase tracking-widest text-primary">Profile</span>
-                  <h2 className="mt-2 text-3xl font-extrabold text-slate-950">Admin User Profile</h2>
-                  <p className="mt-1 text-sm text-slate-500">Admin account details, password controls and session action.</p>
-                </div>
-
-                <div className="space-y-5">
-                  <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <h3 className="font-extrabold text-slate-950">Profile Details</h3>
-                    <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center shadow-sm">
-                      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-                        <ShieldCheck size={34} />
-                      </div>
-                      <h3 className="mt-4 text-xl font-extrabold text-slate-950">{adminProfile.name}</h3>
-                      <p className="text-sm font-bold text-primary">{adminProfile.role}</p>
-                    </div>
-                    <div className="mt-5 grid gap-4 lg:grid-cols-3">
-                      {[
-                        { label: "Email", value: adminProfile.email, icon: Mail },
-                        { label: "Department", value: adminProfile.department, icon: ClipboardList },
-                        { label: "Last Login", value: adminProfile.lastLogin, icon: Eye },
-                      ].map((item) => (
-                        <div key={item.label} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
-                          <item.icon size={18} className="text-primary" />
-                          <p className="mt-3 text-xs font-bold uppercase tracking-wider text-slate-400">{item.label}</p>
-                          <p className="mt-1 font-bold text-slate-800">{item.value}</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                    <div className="mb-5 flex items-center gap-2">
-                      <KeyRound size={18} className="text-primary" />
-                      <h3 className="font-extrabold text-slate-950">Change Password</h3>
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-3">
-                      {["Current password", "New password", "Confirm password"].map((label) => (
-                        <div key={label}>
-                          <label className="mb-2 block text-sm font-bold text-slate-700">{label}</label>
-                          <input
-                            type="password"
-                            placeholder="Enter password"
-                            className="h-11 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                          />
-                        </div>
-                      ))}
-                    </div>
-                    <button
-                      type="button"
-                      className="mt-4 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-primary/90"
-                    >
-                      <KeyRound size={17} /> Update Password
-                    </button>
-                  </div>
-                </div>
-              </section>
-            )}
-          </div>
-        </main>
+      <AdminDashboardSidebar
+        activeTab={activeTab}
+        navItems={navItems}
+        onTabChange={navigateToTab}
+        onLogout={logout}
+        isCollapsed={isSidebarCollapsed}
+      />
+      <AdminDashboardNavbar
+        activeTab={activeTab}
+        navItems={navItems}
+        onTabChange={navigateToTab}
+        isSidebarCollapsed={isSidebarCollapsed}
+        onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
+        sidebarWidthClass={sidebarWidthClass}
+        profileName={adminProfile?.name ?? "Admin"}
+      />
+      <div className={`min-w-0 transition-all duration-300 ${sidebarWidthClass}`}>
+        <main className="mx-auto min-h-[calc(100vh-76px)] max-w-7xl px-4 py-6 md:px-6 md:py-8">{sectionContent[activeTab]}</main>
       </div>
 
       {showCreateUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-md">
-          <div className="w-full max-w-2xl rounded-2xl border border-white/45 bg-white/85 p-5 shadow-2xl shadow-slate-950/30 backdrop-blur-xl md:p-6">
-            <div className="mb-5 flex items-start justify-between gap-4">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-widest text-primary">Create User</span>
-                <h3 className="mt-2 text-2xl font-extrabold text-slate-950">Admin, Editor or Reviewer</h3>
-                <p className="mt-1 text-sm text-slate-500">Add a privileged account for the journal workspace.</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowCreateUser(false);
-                  setCreateUserError("");
-                }}
-                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-500 transition-colors hover:border-primary hover:text-primary"
-                aria-label="Close create user popup"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <label className="mb-2 block text-sm font-bold text-slate-700">User type</label>
-                <select
-                  value={newUser.role}
-                  onChange={(event) => setNewUser((value) => ({ ...value, role: event.target.value as Exclude<UserRole, "User"> }))}
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white/90 px-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                >
-                  <option>Admin</option>
-                  <option>Editor</option>
-                  <option>Reviewer</option>
-                </select>
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-bold text-slate-700">User name</label>
-                <input
-                  value={newUser.name}
-                  onChange={(event) => setNewUser((value) => ({ ...value, name: event.target.value }))}
-                  placeholder="Enter full name"
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white/90 px-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                />
-              </div>
-              <div className="md:col-span-2">
-                <label className="mb-2 block text-sm font-bold text-slate-700">Email</label>
-                <input
-                  value={newUser.email}
-                  onChange={(event) => setNewUser((value) => ({ ...value, email: event.target.value }))}
-                  type="email"
-                  placeholder="Enter email address"
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white/90 px-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-bold text-slate-700">Password</label>
-                <input
-                  value={newUser.password}
-                  onChange={(event) => setNewUser((value) => ({ ...value, password: event.target.value }))}
-                  type="password"
-                  placeholder="Enter password"
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white/90 px-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-bold text-slate-700">Confirm password</label>
-                <input
-                  value={newUser.confirmPassword}
-                  onChange={(event) => setNewUser((value) => ({ ...value, confirmPassword: event.target.value }))}
-                  type="password"
-                  placeholder="Confirm password"
-                  className="h-11 w-full rounded-xl border border-slate-200 bg-white/90 px-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
-                />
-              </div>
-            </div>
-
-            {createUserError && (
-              <div className="mt-4 rounded-xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">
-                {createUserError}
-              </div>
-            )}
-
-            <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowCreateUser(false);
-                  setCreateUserError("");
-                }}
-                className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white/80 px-5 py-3 text-sm font-bold text-slate-700 transition-colors hover:border-primary hover:text-primary"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={createPrivilegedUser}
-                className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-primary/90"
-              >
-                <Plus size={17} /> Create User
-              </button>
-            </div>
-          </div>
-        </div>
+        <CreateUserModal
+          createUserError={createUserError}
+          newUser={newUser}
+          isCreating={isCreatingUser}
+          onClose={closeCreateUserModal}
+          onCreateUser={createPrivilegedUser}
+          onNewUserChange={setNewUser}
+        />
       )}
 
       {selectedQuery && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-md">
-          <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-white/45 bg-white/85 p-5 shadow-2xl shadow-slate-950/30 backdrop-blur-xl md:p-6">
-            <div className="mb-5 flex items-start justify-between gap-4">
-              <div>
-                <span className="text-xs font-bold uppercase tracking-widest text-primary">Query Details</span>
-                <h3 className="mt-2 text-2xl font-extrabold text-slate-950">{selectedQuery.subject}</h3>
-                <p className="mt-1 text-sm text-slate-500">{selectedQuery.id} - {selectedQuery.date}</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedQuery(null)}
-                className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white/80 text-slate-500 transition-colors hover:border-primary hover:text-primary"
-                aria-label="Close query details popup"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              {[
-                { label: "First Name", value: selectedQuery.firstName },
-                { label: "Last Name", value: selectedQuery.lastName },
-                { label: "Email Address", value: selectedQuery.email },
-                { label: "Institution / Affiliation", value: selectedQuery.institution },
-                { label: "Subject", value: selectedQuery.subject },
-                { label: "Status", value: selectedQuery.status },
-              ].map((item) => (
-                <div key={item.label} className="rounded-2xl border border-slate-100 bg-white/80 p-4">
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400">{item.label}</p>
-                  <p className="mt-1 font-bold text-slate-800">{item.value}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4 rounded-2xl border border-slate-100 bg-white/80 p-4">
-              <div className="mb-3 flex items-center gap-2">
-                <MessageSquareText size={18} className="text-primary" />
-                <p className="font-extrabold text-slate-950">Message</p>
-              </div>
-              <p className="text-sm leading-relaxed text-slate-600">{selectedQuery.message}</p>
-            </div>
-
-            <div className="mt-6 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setSelectedQuery(null)}
-                className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-primary/90"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
+        <QueryDetailsModal
+          query={selectedQuery}
+          isUpdating={isUpdatingQuery}
+          onClose={() => setSelectedQuery(null)}
+          onStatusChange={changeQueryStatus}
+        />
       )}
     </div>
   );

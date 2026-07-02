@@ -138,8 +138,16 @@ const MySubmissionsPage = ({ submissions, onSectionChange }: MySubmissionsPagePr
                       </span>
                     </td>
                     <td className="px-5 py-4 text-slate-500">{submission.date}</td>
-                    <td className="px-5 py-4">
-                      <div className="flex justify-end gap-2">
+                    <td className="px-5 py-4 text-right">
+                      {canEdit ? (
+                        <button
+                          type="button"
+                          onClick={() => onSectionChange("submit")}
+                          className="inline-flex items-center justify-center gap-2 rounded-xl bg-slate-950 px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-slate-800"
+                        >
+                          <Edit3 size={15} /> Edit
+                        </button>
+                      ) : (
                         <button
                           type="button"
                           onClick={() => handleView(submission)}
@@ -147,19 +155,7 @@ const MySubmissionsPage = ({ submissions, onSectionChange }: MySubmissionsPagePr
                         >
                           <Eye size={15} /> View
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => canEdit && onSectionChange("submit")}
-                          disabled={!canEdit}
-                          className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2 text-xs font-bold transition-colors ${
-                            canEdit
-                              ? "bg-slate-950 text-white hover:bg-slate-800"
-                              : "cursor-not-allowed bg-slate-100 text-slate-400"
-                          }`}
-                        >
-                          <Edit3 size={15} /> Edit
-                        </button>
-                      </div>
+                      )}
                     </td>
                   </tr>
                 );
