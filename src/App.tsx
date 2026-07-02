@@ -91,8 +91,8 @@ const App = () => (
           <Route path="/admin/*" element={<RequireAuth allowedRoles={["admin"]}><Admin /></RequireAuth>} />
           <Route path="/editor" element={<Navigate to="/editor/dashboard" replace />} />
           <Route path="/editor/*" element={<RequireAuth allowedRoles={["editor", "chief editor"]}><Editor /></RequireAuth>} />
-          <Route path="/publication-team" element={<Navigate to="/publication-team/dashboard" replace />} />
-          <Route path="/publication-team/*" element={<RequireAuth allowedRoles={["publication team"]}><PublicationTeam /></RequireAuth>} />
+          <Route path="/publication" element={<Navigate to="/publication/dashboard" replace />} />
+          <Route path="/publication/*" element={<RequireAuth allowedRoles={["publication team"]}><PublicationTeam /></RequireAuth>} />
           <Route path="/reviewer" element={<Navigate to="/reviewer/dashboard" replace />} />
           <Route path="/reviewer/*" element={<RequireAuth allowedRoles={["reviewer"]}><Reviewer /></RequireAuth>} />
           <Route path="/user-dashboard" element={<Navigate to="/user/dashboard" replace />} />
