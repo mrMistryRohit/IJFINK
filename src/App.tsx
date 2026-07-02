@@ -18,6 +18,8 @@ import Editor from "./pages/Editor";
 import Reviewer from "./pages/Reviewer";
 import UserDashboard from "./pages/UserDashboard";
 import NotFound from "./pages/NotFound";
+import ProtectedRoute from "./lib/ProtectedRoute";
+import ForgotPassword from "./pages/ForgotPassword";
 
 const queryClient = new QueryClient();
 
@@ -48,15 +50,16 @@ const App = () => (
           <Route path="/submit" element={<SubmitPaper />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="/admin/*" element={<Admin />} />
-          <Route path="/editor" element={<Navigate to="/editor/dashboard" replace />} />
-          <Route path="/editor/*" element={<Editor />} />
-          <Route path="/reviewer" element={<Navigate to="/reviewer/dashboard" replace />} />
-          <Route path="/reviewer/*" element={<Reviewer />} />
-          <Route path="/user-dashboard" element={<Navigate to="/user/dashboard" replace />} />
-          <Route path="/user" element={<Navigate to="/user/dashboard" replace />} />
-          <Route path="/user/*" element={<UserDashboard />} />
+          <Route path="/forgot-password/*" element={<ForgotPassword />} />
+          <Route path="/admin" element={<ProtectedRoute allowedRoles={["Admin"]} verificationPath="/api/admin/users"><Navigate to="/admin/dashboard" replace /></ProtectedRoute>} />
+          <Route path="/admin/*" element={<ProtectedRoute allowedRoles={["Admin"]} verificationPath="/api/admin/users"><Admin /></ProtectedRoute>} />
+          <Route path="/editor" element={<ProtectedRoute allowedRoles={["Editor"]} verificationPath="/api/editor/dashboard"><Navigate to="/editor/dashboard" replace /></ProtectedRoute>} />
+          <Route path="/editor/*" element={<ProtectedRoute allowedRoles={["Editor"]} verificationPath="/api/editor/dashboard"><Editor /></ProtectedRoute>} />
+          <Route path="/reviewer" element={<ProtectedRoute allowedRoles={["Reviewer"]}><Navigate to="/reviewer/dashboard" replace /></ProtectedRoute>} />
+          <Route path="/reviewer/*" element={<ProtectedRoute allowedRoles={["Reviewer"]}><Reviewer /></ProtectedRoute>} />
+          <Route path="/user-dashboard" element={<ProtectedRoute allowedRoles={["Author"]} verificationPath="/api/user/articles"><Navigate to="/user/dashboard" replace /></ProtectedRoute>} />
+          <Route path="/user" element={<ProtectedRoute allowedRoles={["Author"]} verificationPath="/api/user/articles"><Navigate to="/user/dashboard" replace /></ProtectedRoute>} />
+          <Route path="/user/*" element={<ProtectedRoute allowedRoles={["Author"]} verificationPath="/api/user/articles"><UserDashboard /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

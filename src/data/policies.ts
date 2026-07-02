@@ -166,7 +166,7 @@ export const policySections: PolicySection[] = [
       { type: "paragraph", text: "Information collected may include:" },
       {
         type: "bullets",
-        items: ["Name", "Institutional affiliation", "Email address", "ORCID ID", "Manuscript-related information"],
+        items: ["Name", "Institutional affiliation", "Email address", "ORCiD", "Manuscript-related information"],
       },
       {
         type: "paragraph",
