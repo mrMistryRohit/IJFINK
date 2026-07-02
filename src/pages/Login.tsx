@@ -52,7 +52,7 @@ const Login = () => {
         throw new Error("Login succeeded but no access token was returned.");
       }
 
-      storeAuthSession(accessToken, user);
+      storeAuthSession(accessToken, user, rememberMe);
       toast({
         title: "Login successful",
         description: response.message ?? "Welcome back.",

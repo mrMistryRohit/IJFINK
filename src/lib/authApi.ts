@@ -91,10 +91,11 @@ export async function registerAuthor(payload: AuthorRegisterRequest) {
   return data;
 }
 
-export function storeAuthSession(accessToken: string, user?: AuthUser) {
-  localStorage.setItem("access_token", accessToken);
+export function storeAuthSession(accessToken: string, user?: AuthUser, rememberMe = false) {
+  const storage = rememberMe ? localStorage : sessionStorage;
+  storage.setItem("access_token", accessToken);
   if (user) {
-    localStorage.setItem("auth_user", JSON.stringify(user));
+    storage.setItem("auth_user", JSON.stringify(user));
   }
 }
 
