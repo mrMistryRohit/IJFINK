@@ -23,7 +23,7 @@ import { logoutUser } from "@/lib/authApi";
 
 const navItems: DashboardNavItem[] = [
   { id: "overview", label: "Dashboard", icon: BarChart3 },
-  { id: "submissions", label: "My Submission", icon: FileText },
+  { id: "submissions", label: "My Articles", icon: FileText },
   { id: "submit", label: "Submit Paper", icon: Upload },
   { id: "revisions", label: "Revisions", icon: GitPullRequest },
   { id: "publications", label: "Publications", icon: BookOpen },
@@ -77,7 +77,7 @@ const UserDashboard = () => {
         onSectionChange={navigateToSection}
       />
     ),
-    submissions: <MySubmissionsPage submissions={userSubmissions} onSectionChange={navigateToSection} />,
+    submissions: <MySubmissionsPage onSectionChange={navigateToSection} />,
     submit: <SubmitPublicationForm />,
     revisions: <RevisionsPage revisions={revisionRequests} />,
     publications: <PublishedPublicationsPage papers={publishedPapers} />,

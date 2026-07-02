@@ -109,7 +109,7 @@ const DashboardOverview = ({ publications, notifications, submissions, onSection
             onClick={() => onSectionChange("submissions")}
             className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-950 shadow-sm transition-colors hover:border-primary hover:text-primary"
           >
-            View submissions
+            View articles
           </button>
           <button
             type="button"
@@ -208,7 +208,7 @@ const DashboardOverview = ({ publications, notifications, submissions, onSection
         <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
           <div className="flex items-start justify-between gap-3 p-5">
             <div>
-              <h2 className="font-extrabold text-slate-950">Recent submissions</h2>
+              <h2 className="font-extrabold text-slate-950">Recent articles</h2>
               <p className="mt-1 text-xs text-slate-500">Your latest manuscripts</p>
             </div>
             <button

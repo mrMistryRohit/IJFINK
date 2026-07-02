@@ -45,6 +45,40 @@ export type UserSubmission = {
   date: string;
 };
 
+export type ArticleStatus =
+  | "Submitted"
+  | "Admin Approved"
+  | "Editorial Review"
+  | "Revision Requested"
+  | "Accepted"
+  | "Publication Review"
+  | "Submitted To Organization"
+  | "Published"
+  | "Rejected"
+  | string;
+
+export type ArticleListItem = {
+  articleId: number;
+  title: string;
+  abstract: string;
+  articleType: string;
+  subjectArea: string;
+  status: ArticleStatus;
+  submittedAt: string;
+  updatedAt: string;
+  authorName: string;
+  authorInstitution?: string;
+  coAuthorCount: number;
+  keywords: string[];
+  thumbnailUrl?: string | null;
+  files: Array<{
+    fileName?: string;
+    fileType?: string;
+    filePath?: string;
+    fileUrl?: string;
+  }>;
+};
+
 export type RevisionComment = {
   id: string;
   reviewer: string;
