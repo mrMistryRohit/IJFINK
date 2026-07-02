@@ -3,10 +3,12 @@ import type { ContactQuery } from "./types";
 
 type QueryDetailsModalProps = {
   query: ContactQuery;
+  isUpdating: boolean;
   onClose: () => void;
+  onStatusChange: (status: "Pending" | "Resolved") => void;
 };
 
-const QueryDetailsModal = ({ query, onClose }: QueryDetailsModalProps) => {
+const QueryDetailsModal = ({ query, isUpdating, onClose, onStatusChange }: QueryDetailsModalProps) => {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 p-4 backdrop-blur-md">
       <div className="max-h-[90vh] w-full max-w-3xl overflow-y-auto rounded-2xl border border-white/45 bg-white/85 p-5 shadow-2xl shadow-slate-950/30 backdrop-blur-xl md:p-6">
@@ -33,7 +35,6 @@ const QueryDetailsModal = ({ query, onClose }: QueryDetailsModalProps) => {
             { label: "First Name", value: query.firstName },
             { label: "Last Name", value: query.lastName },
             { label: "Email Address", value: query.email },
-            { label: "Institution / Affiliation", value: query.institution },
             { label: "Subject", value: query.subject },
             { label: "Status", value: query.status },
           ].map((item) => (
@@ -52,13 +53,21 @@ const QueryDetailsModal = ({ query, onClose }: QueryDetailsModalProps) => {
           <p className="text-sm leading-relaxed text-slate-600">{query.message}</p>
         </div>
 
-        <div className="mt-6 flex justify-end">
+        <div className="mt-6 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-primary/90"
+            className="inline-flex items-center justify-center rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-700 transition-colors hover:border-primary hover:text-primary"
           >
             Close
+          </button>
+          <button
+            type="button"
+            disabled={isUpdating}
+            onClick={() => onStatusChange(query.status === "Pending" ? "Resolved" : "Pending")}
+            className="inline-flex items-center justify-center rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-primary/90"
+          >
+            {isUpdating ? "Updating..." : query.status === "Pending" ? "Mark Resolved" : "Reopen Query"}
           </button>
         </div>
       </div>

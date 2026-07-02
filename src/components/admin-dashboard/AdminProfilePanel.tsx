@@ -1,11 +1,16 @@
-import { ClipboardList, Eye, KeyRound, Mail, ShieldCheck } from "lucide-react";
-import { adminProfile } from "./adminDashboardData";
+import { BadgeCheck, Hash, KeyRound, Mail, ShieldCheck } from "lucide-react";
+import type { AdminProfileData } from "./types";
 
-const AdminProfilePanel = () => {
+type AdminProfilePanelProps = {
+  profile: AdminProfileData | null;
+  isLoading: boolean;
+  error: string;
+};
+
+const AdminProfilePanel = ({ profile, isLoading, error }: AdminProfilePanelProps) => {
   return (
     <section>
       <div className="mb-6">
-        <span className="text-xs font-bold uppercase tracking-widest text-primary">Profile</span>
         <h2 className="mt-2 text-3xl font-extrabold text-slate-950">Admin User Profile</h2>
         <p className="mt-1 text-sm text-slate-500">Admin account details, password controls and session action.</p>
       </div>
@@ -17,14 +22,17 @@ const AdminProfilePanel = () => {
             <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-2xl bg-primary/10 text-primary">
               <ShieldCheck size={34} />
             </div>
-            <h3 className="mt-4 text-xl font-extrabold text-slate-950">{adminProfile.name}</h3>
-            <p className="text-sm font-bold text-primary">{adminProfile.role}</p>
+            <h3 className="mt-4 text-xl font-extrabold text-slate-950">
+              {isLoading && !profile ? "Loading profile..." : profile?.name ?? "Admin"}
+            </h3>
+            <p className="text-sm font-bold text-primary">{profile?.role ?? "Admin"}</p>
+            {error && <p className="mt-2 text-sm font-semibold text-rose-600">{error}</p>}
           </div>
           <div className="mt-5 grid gap-4 lg:grid-cols-3">
             {[
-              { label: "Email", value: adminProfile.email, icon: Mail },
-              { label: "Department", value: adminProfile.department, icon: ClipboardList },
-              { label: "Last Login", value: adminProfile.lastLogin, icon: Eye },
+              { label: "Email", value: profile?.email ?? "Not available", icon: Mail },
+              { label: "Account Status", value: profile?.status ?? "Not available", icon: BadgeCheck },
+              { label: "User ID", value: profile ? String(profile.userId) : "Not available", icon: Hash },
             ].map((item) => (
               <div key={item.label} className="rounded-2xl border border-slate-100 bg-slate-50 p-4">
                 <item.icon size={18} className="text-primary" />

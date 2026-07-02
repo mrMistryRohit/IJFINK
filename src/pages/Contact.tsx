@@ -1,7 +1,11 @@
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { motion } from "framer-motion";
+import type { FormEvent } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
+import { toast } from "@/hooks/use-toast";
+import { submitContactQuery } from "@/lib/contactApi";
 import {
   Mail, Phone, MapPin, Clock, Send, MessageSquare,
   FileText, HelpCircle, Users, ArrowRight, CheckCircle2
@@ -30,6 +34,44 @@ const faqs = [
 ];
 
 const Contact = () => {
+  const [formData, setFormData] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    institution: "",
+    subject: "",
+    message: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      const response = await submitContactQuery({
+        first_name: formData.firstName.trim(),
+        last_name: formData.lastName.trim(),
+        email: formData.email.trim(),
+        subject: formData.subject,
+        message: formData.message.trim(),
+      });
+      toast({
+        title: "Message sent",
+        description: response.message ?? "Your query has been submitted successfully.",
+      });
+      setFormData({ firstName: "", lastName: "", email: "", institution: "", subject: "", message: "" });
+    } catch (error) {
+      toast({
+        title: "Message not sent",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white">
       <Navbar />
@@ -95,13 +137,16 @@ const Contact = () => {
               <h2 className="text-2xl font-extrabold text-slate-900 mb-2">Send Us a Message</h2>
               <p className="text-slate-500 mb-8">Fill out the form below and we'll get back to you within 1–2 business days.</p>
 
-              <form className="space-y-5">
+              <form className="space-y-5" onSubmit={handleSubmit}>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">First Name *</label>
                     <input
                       type="text"
                       placeholder="John"
+                      required
+                      value={formData.firstName}
+                      onChange={(event) => setFormData({ ...formData, firstName: event.target.value })}
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
                     />
                   </div>
@@ -110,6 +155,9 @@ const Contact = () => {
                     <input
                       type="text"
                       placeholder="Doe"
+                      required
+                      value={formData.lastName}
+                      onChange={(event) => setFormData({ ...formData, lastName: event.target.value })}
                       className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
                     />
                   </div>
@@ -119,6 +167,9 @@ const Contact = () => {
                   <input
                     type="email"
                     placeholder="john.doe@university.edu"
+                    required
+                    value={formData.email}
+                    onChange={(event) => setFormData({ ...formData, email: event.target.value })}
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
                   />
                 </div>
@@ -127,12 +178,19 @@ const Contact = () => {
                   <input
                     type="text"
                     placeholder="University or research organization"
+                    value={formData.institution}
+                    onChange={(event) => setFormData({ ...formData, institution: event.target.value })}
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors"
                   />
                 </div>
                 <div>
                   <label className="block text-sm font-semibold text-slate-700 mb-1.5">Subject *</label>
-                  <select className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors bg-white">
+                  <select
+                    required
+                    value={formData.subject}
+                    onChange={(event) => setFormData({ ...formData, subject: event.target.value })}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors bg-white"
+                  >
                     <option value="">Select a topic...</option>
                     <option>Manuscript Submission</option>
                     <option>Peer Review Status</option>
@@ -147,14 +205,18 @@ const Contact = () => {
                   <textarea
                     rows={5}
                     placeholder="Please describe your query in detail..."
+                    required
+                    value={formData.message}
+                    onChange={(event) => setFormData({ ...formData, message: event.target.value })}
                     className="w-full px-4 py-3 rounded-xl border border-slate-200 text-slate-900 placeholder-slate-400 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors resize-none"
                   />
                 </div>
                 <button
                   type="submit"
+                  disabled={isSubmitting}
                   className="w-full bg-primary text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 hover:bg-primary/90 transition-all hover:shadow-lg hover:shadow-primary/25 active:scale-[0.98]"
                 >
-                  <Send size={16} /> Send Message
+                  <Send size={16} /> {isSubmitting ? "Sending..." : "Send Message"}
                 </button>
                 <p className="text-xs text-slate-400 text-center">
                   By submitting this form, you agree to our privacy policy. We'll never share your information with third parties.

@@ -6,6 +6,7 @@ type EditorDashboardSidebarProps = {
   activeSection: EditorDashboardSection;
   navItems: EditorNavItem[];
   onSectionChange: (section: EditorDashboardSection) => void;
+  onLogout: () => void;
   isCollapsed: boolean;
 };
 
@@ -13,6 +14,7 @@ const EditorDashboardSidebar = ({
   activeSection,
   navItems,
   onSectionChange,
+  onLogout,
   isCollapsed,
 }: EditorDashboardSidebarProps) => {
   return (
@@ -56,6 +58,7 @@ const EditorDashboardSidebar = ({
       <div className={`mt-auto ${isCollapsed ? "p-2" : "p-3"}`}>
         <button
           type="button"
+          onClick={onLogout}
           className={`flex items-center rounded-xl border border-white/10 bg-white/[0.06] text-left text-sm font-bold text-white/80 transition-colors hover:border-rose-400 hover:bg-rose-500 hover:text-white ${
             isCollapsed ? "mx-auto h-10 w-10 justify-center p-0" : "w-full gap-3 px-4 py-3"
           }`}

@@ -1,4 +1,6 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { logoutUser } from "@/lib/authApi";
 import {
   BarChart3,
   BookOpenCheck,
@@ -142,6 +144,7 @@ const statusTone: Record<ReviewStatus, string> = {
 };
 
 const Reviewer = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<ReviewerTab>("dashboard");
   const [manuscripts, setManuscripts] = useState(initialManuscripts);
   const [selectedId, setSelectedId] = useState(initialManuscripts[0].id);
@@ -226,6 +229,11 @@ const Reviewer = () => {
     setFinalNote("");
   };
 
+  const logout = async () => {
+    await logoutUser();
+    navigate("/login", { replace: true });
+  };
+
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
       <div className="flex min-h-screen">
@@ -258,6 +266,7 @@ const Reviewer = () => {
 
           <button
             type="button"
+            onClick={logout}
             className="mt-auto inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-slate-800"
           >
             <LogOut size={17} /> Logout
