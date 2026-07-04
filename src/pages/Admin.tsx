@@ -154,84 +154,69 @@ const Admin = () => {
   const sidebarWidthClass = isSidebarCollapsed ? "lg:ml-16" : "lg:ml-[12.5rem]";
   const sectionRoute = location.pathname.split("/").filter(Boolean)[1];
   const routeArticleId = Number(location.pathname.split("/").filter(Boolean)[2]);
-  const selectedArticleId = selectedArticle?.article_id;
   const activeTab = sectionRoute ? adminRouteSections[sectionRoute] : undefined;
 
   useEffect(() => {
     let isCurrent = true;
-
     const loadUsers = async () => {
       try {
-        const apiUsers = await getAdminUsers();
-        if (isCurrent) setUsers(apiUsers.map(mapApiUser));
-      } catch (error) {
-        if (isCurrent) setUsersError(error instanceof Error ? error.message : "Unable to load users.");
-      } finally {
-        if (isCurrent) setIsLoadingUsers(false);
+        const data = await getAdminUsers({ includeEditorDetails: activeTab === "users" });
+        if (isCurrent) { setUsers(data.map(mapApiUser)); setUsersError(""); }
       }
+      catch (error) { if (isCurrent) setUsersError(error instanceof Error ? error.message : "Unable to load users."); }
+      finally { if (isCurrent) setIsLoadingUsers(false); }
     };
-
-    const loadProfile = async () => {
-      try {
-        const profile = await getCurrentAdminProfile();
-        if (isCurrent) setAdminProfile(mapAdminProfile(profile));
-      } catch (error) {
-        if (isCurrent) setProfileError(error instanceof Error ? error.message : "Unable to load the admin profile.");
-      } finally {
-        if (isCurrent) setIsLoadingProfile(false);
-      }
-    };
-
     const loadQueries = async () => {
-      try {
-        const queries = await getContactQueries();
-        if (isCurrent) setContactQueries(queries.map(mapContactQuery));
-      } catch (error) {
-        if (isCurrent) setQueriesError(error instanceof Error ? error.message : "Unable to load contact queries.");
-      } finally {
-        if (isCurrent) setIsLoadingQueries(false);
+      try { const data = await getContactQueries(); if (isCurrent) { setContactQueries(data.map(mapContactQuery)); setQueriesError(""); } }
+      catch (error) { if (isCurrent) setQueriesError(error instanceof Error ? error.message : "Unable to load contact queries."); }
+      finally { if (isCurrent) setIsLoadingQueries(false); }
+    };
+    const loadHealth = async () => { const online = await checkApiHealth(); if (isCurrent) setIsSystemOnline(online); };
+    const loadProfile = async () => {
+      try { const data = await getCurrentAdminProfile(); if (isCurrent) { setAdminProfile(mapAdminProfile(data)); setProfileError(""); } }
+      catch (error) { if (isCurrent) setProfileError(error instanceof Error ? error.message : "Unable to load the admin profile."); }
+      finally { if (isCurrent) setIsLoadingProfile(false); }
+    };
+    const loadPending = async () => {
+      try { const data = await getPendingScreeningArticles(); if (isCurrent) { setPendingArticles(data); setPendingArticlesError(""); } }
+      catch (error) { if (isCurrent) setPendingArticlesError(error instanceof Error ? error.message : "Unable to load pending papers."); }
+      finally { if (isCurrent) setIsLoadingPending(false); }
+    };
+    const loadArticles = async () => {
+      try { const data = await getAdminArticles(); if (isCurrent) { setAllArticles(data); setAllArticlesError(""); } }
+      catch (error) { if (isCurrent) setAllArticlesError(error instanceof Error ? error.message : "Unable to load papers."); }
+      finally { if (isCurrent) setIsLoadingAllArticles(false); }
+    };
+
+    const refreshActivePage = () => {
+      if (activeTab === "dashboard") {
+        void loadUsers();
+        void loadHealth();
+      } else if (activeTab === "users") {
+        void loadUsers();
+      } else if (activeTab === "queries") {
+        void loadQueries();
+      } else if (activeTab === "profile") {
+        void loadProfile();
+      } else if (activeTab === "articles") {
+        void loadArticles();
+      } else if (activeTab === "screening" && sectionRoute !== "editor-assignment") {
+        void loadPending();
       }
     };
 
-    const loadHealth = async () => {
-      const isOnline = await checkApiHealth();
-      if (isCurrent) setIsSystemOnline(isOnline);
-    };
-
-    const loadPendingArticles = async () => {
-      try {
-        const articles = await getPendingScreeningArticles();
-        if (isCurrent) setPendingArticles(articles);
-      } catch (error) {
-        if (isCurrent) setPendingArticlesError(error instanceof Error ? error.message : "Unable to load pending papers.");
-      } finally {
-        if (isCurrent) setIsLoadingPending(false);
-      }
-    };
-
-    const loadAllArticles = async () => {
-      try {
-        const articles = await getAdminArticles();
-        if (isCurrent) setAllArticles(articles);
-      } catch (error) {
-        if (isCurrent) setAllArticlesError(error instanceof Error ? error.message : "Unable to load papers.");
-      } finally {
-        if (isCurrent) setIsLoadingAllArticles(false);
-      }
-    };
-
-    loadUsers();
-    loadProfile();
-    loadQueries();
-    loadHealth();
-    loadPendingArticles();
-    loadAllArticles();
-    const healthInterval = window.setInterval(loadHealth, 30000);
+    refreshActivePage();
+    const pollDelay = activeTab === "queries" ? 10000 : activeTab === "screening" || activeTab === "articles" ? 15000 : 30000;
+    const interval = window.setInterval(refreshActivePage, pollDelay);
+    window.addEventListener("focus", refreshActivePage);
+    window.addEventListener("online", refreshActivePage);
     return () => {
       isCurrent = false;
-      window.clearInterval(healthInterval);
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refreshActivePage);
+      window.removeEventListener("online", refreshActivePage);
     };
-  }, []);
+  }, [activeTab, sectionRoute]);
 
   useEffect(() => {
     if (!Number.isInteger(routeArticleId) || routeArticleId <= 0) {
@@ -259,11 +244,18 @@ const Admin = () => {
       }
     };
 
-    if ((sectionRoute === "paper-screening" || sectionRoute === "editor-assignment") && selectedArticleId !== routeArticleId) {
-      loadRouteArticle();
-    }
-    return () => { isCurrent = false; };
-  }, [navigate, routeArticleId, sectionRoute, selectedArticleId]);
+    if (sectionRoute !== "paper-screening" && sectionRoute !== "editor-assignment") return;
+    loadRouteArticle();
+    const interval = window.setInterval(loadRouteArticle, 15000);
+    window.addEventListener("focus", loadRouteArticle);
+    window.addEventListener("online", loadRouteArticle);
+    return () => {
+      isCurrent = false;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", loadRouteArticle);
+      window.removeEventListener("online", loadRouteArticle);
+    };
+  }, [navigate, routeArticleId, sectionRoute]);
 
   useEffect(() => {
     if (sectionRoute !== "editor-assignment") return;
@@ -281,8 +273,23 @@ const Admin = () => {
       }
     };
     loadEditors();
-    return () => { isCurrent = false; };
+    const interval = window.setInterval(loadEditors, 30000);
+    window.addEventListener("focus", loadEditors);
+    window.addEventListener("online", loadEditors);
+    return () => {
+      isCurrent = false;
+      window.clearInterval(interval);
+      window.removeEventListener("focus", loadEditors);
+      window.removeEventListener("online", loadEditors);
+    };
   }, [sectionRoute]);
+
+  useEffect(() => {
+    setSelectedQuery((current) => {
+      if (!current) return current;
+      return contactQueries.find((query) => query.queryId === current.queryId) ?? current;
+    });
+  }, [contactQueries]);
 
   const navigateToTab = (tab: AdminTab) => {
     navigate(`/admin/${adminSectionRoutes[tab]}`);
@@ -559,7 +566,6 @@ const Admin = () => {
       <AdminOverview
         totalUsers={users.length}
         activeUsers={users.filter((user) => user.status === "Active").length}
-        queryCount={contactQueries.length}
         roleCounts={roleCounts}
         isSystemOnline={isSystemOnline}
       />

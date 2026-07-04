@@ -133,9 +133,13 @@ async function adminRequest<T>(path: string, init?: RequestInit) {
   return data;
 }
 
-export async function getAdminUsers() {
+export async function getAdminUsers(options: { includeEditorDetails?: boolean } = {}) {
   const response = await adminRequest<{ users: AdminApiUser[]; total_count: number }>("/api/admin/users");
   const users = response.data?.users ?? [];
+
+  if (options.includeEditorDetails === false) {
+    return users;
+  }
 
   return Promise.all(
     users.map(async (user) => {

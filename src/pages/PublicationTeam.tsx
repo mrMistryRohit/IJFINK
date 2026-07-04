@@ -50,7 +50,29 @@ const PublicationTeam = () => {
     finally { setIsLoadingPublished(false); }
   }, []);
 
-  useEffect(() => { void loadAccepted(); void loadPublished(); }, [loadAccepted, loadPublished]);
+  useEffect(() => {
+    const refreshActivePage = () => {
+      if (activeSection === "dashboard") {
+        void loadAccepted();
+        void loadPublished();
+      } else if (activeSection === "accepted") {
+        void loadAccepted();
+      } else if (activeSection === "published") {
+        void loadPublished();
+      }
+    };
+
+    refreshActivePage();
+    if (activeSection === "profile" || !activeSection) return;
+    const interval = window.setInterval(refreshActivePage, 15000);
+    window.addEventListener("focus", refreshActivePage);
+    window.addEventListener("online", refreshActivePage);
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refreshActivePage);
+      window.removeEventListener("online", refreshActivePage);
+    };
+  }, [activeSection, loadAccepted, loadPublished]);
   const navigateTo = (section: PublicationSection) => navigate(`/publication/${sectionRoutes[section]}`);
   const logout = async () => { await logoutUser(); navigate("/login", { replace: true }); };
   if (!activeSection) return <Navigate to="/publication/dashboard" replace />;

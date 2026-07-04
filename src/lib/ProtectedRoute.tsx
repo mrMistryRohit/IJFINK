@@ -22,6 +22,7 @@ const roleDashboard: Record<string, string> = {
   editor: "/editor/dashboard",
   author: "/user/dashboard",
   reviewer: "/reviewer/dashboard",
+  "publication team": "/publication/dashboard",
 };
 
 function decodeJwtPayload(token: string): JwtPayload | null {
