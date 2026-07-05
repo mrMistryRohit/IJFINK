@@ -20,6 +20,7 @@ const normalizeRole = (value?: string) => value?.trim().toLowerCase();
 const roleDashboard: Record<string, string> = {
   admin: "/admin/dashboard",
   editor: "/editor/dashboard",
+  "chief editor": "/chief-editor/dashboard",
   author: "/user/dashboard",
   reviewer: "/reviewer/dashboard",
   "publication team": "/publication/dashboard",
@@ -42,11 +43,15 @@ function validateLocalSession(token: string, allowedRoleKey: string) {
   const payload = decodeJwtPayload(token);
   if (!user || !payload?.exp || !payload.sub || !payload.role) return { status: "invalid" as const };
 
-  const role = normalizeRole(user.role);
+  const accountRole = normalizeRole(user.role);
+  const role =
+    accountRole === "editor" && user.redirect_to?.startsWith("/chief-editor/")
+      ? "chief editor"
+      : accountRole;
   const isValid = Boolean(
     payload.exp * 1000 > Date.now() &&
     payload.sub === String(user.user_id) &&
-    normalizeRole(payload.role) === role &&
+    normalizeRole(payload.role) === accountRole &&
     normalizeRole(user.status) === "active"
   );
 

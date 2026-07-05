@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { ArrowDown, ArrowLeft, ArrowUp, ArrowUpDown, CheckCircle2, Download, Eye, FileText, Search, XCircle } from "lucide-react";
-import { getScreeningFile, type AdminArticle, type ArticleFile, type ScreeningArticle } from "@/lib/adminApi";
+import { getAdminArticleFile, type AdminArticle, type ArticleFile, type ScreeningArticle } from "@/lib/adminApi";
 import { formatApiDate, getApiDateTimestamp } from "@/lib/dateUtils";
 import { toast } from "@/hooks/use-toast";
 
@@ -73,7 +73,7 @@ const PaperScreeningPage = ({
     const previewWindow = action === "view" ? window.open("", "_blank", "noopener,noreferrer") : null;
     setActiveFileAction(actionKey);
     try {
-      const blob = await getScreeningFile(file.file_id);
+      const blob = await getAdminArticleFile(selectedArticle.article_id, file.file_id);
       const objectUrl = URL.createObjectURL(blob);
       if (action === "view") {
         if (previewWindow) previewWindow.location.href = objectUrl;

@@ -14,10 +14,11 @@ import SubmitPaper from "./pages/SubmitPaper";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Admin from "./pages/Admin";
-import Editor from "./pages/Editor";
+import Editor from "./pages/EditorIntegrated";
 import Reviewer from "./pages/Reviewer";
 import UserDashboard from "./pages/UserDashboard";
 import PublicationTeam from "./pages/PublicationTeam";
+import ChiefEditor from "./pages/ChiefEditorIntegrated";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./lib/ProtectedRoute";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -56,6 +57,8 @@ const App = () => (
           <Route path="/admin/*" element={<ProtectedRoute allowedRoles={["Admin"]}><Admin /></ProtectedRoute>} />
           <Route path="/editor" element={<ProtectedRoute allowedRoles={["Editor"]}><Navigate to="/editor/dashboard" replace /></ProtectedRoute>} />
           <Route path="/editor/*" element={<ProtectedRoute allowedRoles={["Editor"]}><Editor /></ProtectedRoute>} />
+          <Route path="/chief-editor" element={<ProtectedRoute allowedRoles={["Chief Editor"]}><Navigate to="/chief-editor/dashboard" replace /></ProtectedRoute>} />
+          <Route path="/chief-editor/*" element={<ProtectedRoute allowedRoles={["Chief Editor"]}><ChiefEditor /></ProtectedRoute>} />
           <Route path="/reviewer" element={<ProtectedRoute allowedRoles={["Reviewer"]}><Navigate to="/reviewer/dashboard" replace /></ProtectedRoute>} />
           <Route path="/reviewer/*" element={<ProtectedRoute allowedRoles={["Reviewer"]}><Reviewer /></ProtectedRoute>} />
           <Route path="/user-dashboard" element={<ProtectedRoute allowedRoles={["Author"]}><Navigate to="/user/dashboard" replace /></ProtectedRoute>} />

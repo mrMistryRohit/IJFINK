@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, ArrowUpDown, FileText, Search, UserRound } from "lucide-react";
-import type { AdminArticle, ScreeningArticle } from "@/lib/adminApi";
+import { ArrowDown, ArrowUp, ArrowUpDown, Download, FileText, Search, UserRound } from "lucide-react";
+import { getAdminArticleFile, type AdminArticle, type ArticleFile, type ScreeningArticle } from "@/lib/adminApi";
 import { formatApiDate, getApiDateTimestamp } from "@/lib/dateUtils";
+import { toast } from "@/hooks/use-toast";
 
 type Props = {
   articles: AdminArticle[];
@@ -19,6 +20,30 @@ const AllPapersPage = ({ articles, detail, isLoading, detailLoading, error, onOp
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState<SortField>("submitted_at");
   const [direction, setDirection] = useState<"asc" | "desc">("desc");
+  const [downloadingFileId, setDownloadingFileId] = useState<number | null>(null);
+
+  const downloadFile = async (articleId: number, file: ArticleFile) => {
+    setDownloadingFileId(file.file_id);
+    try {
+      const blob = await getAdminArticleFile(articleId, file.file_id);
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = file.file_name;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+    } catch (downloadError) {
+      toast({
+        title: "Download failed",
+        description: downloadError instanceof Error ? downloadError.message : "The file could not be downloaded.",
+        variant: "destructive",
+      });
+    } finally {
+      setDownloadingFileId(null);
+    }
+  };
 
   const visible = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -110,7 +135,14 @@ const AllPapersPage = ({ articles, detail, isLoading, detailLoading, error, onOp
                 </div>
                 <div className="rounded-xl bg-slate-50 p-4">
                   <div className="flex items-center gap-2 font-bold text-slate-900"><FileText size={17} /> Article files</div>
-                  <div className="mt-2 space-y-2">{detail.files?.length ? detail.files.map((file) => <p key={file.file_id} className="truncate text-sm text-slate-600">{file.file_name} | {file.file_type}</p>) : <p className="text-sm text-slate-500">No files returned for this status.</p>}</div>
+                  <div className="mt-2 space-y-2">{detail.files?.length ? detail.files.map((file) => (
+                    <div key={file.file_id} className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white p-2.5">
+                      <div className="min-w-0"><p className="truncate text-sm font-semibold text-slate-700">{file.file_name}</p><p className="text-xs text-slate-400">{file.file_type}</p></div>
+                      <button type="button" disabled={downloadingFileId !== null} onClick={() => void downloadFile(detail.article_id, file)} className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-2.5 py-2 text-xs font-bold text-primary hover:bg-primary/10 disabled:opacity-50">
+                        <Download size={14} /> {downloadingFileId === file.file_id ? "Saving..." : "Download"}
+                      </button>
+                    </div>
+                  )) : <p className="text-sm text-slate-500">No files returned for this status.</p>}</div>
                 </div>
               </div>
             </>}

@@ -222,11 +222,11 @@ export async function getScreeningArticle(articleId: number) {
   return response.data.article;
 }
 
-export async function getScreeningFile(fileId: number) {
+export async function getAdminArticleFile(articleId: number, fileId: number) {
   const accessToken = getAccessToken();
   if (!accessToken) throw new Error("Your admin session is missing. Please sign in again.");
 
-  const response = await fetch(getApiUrl(`/api/screening/files/${fileId}`), {
+  const response = await fetch(getApiUrl(`/api/admin/articles/${articleId}/files/${fileId}/download`), {
     headers: { Authorization: `Bearer ${accessToken}` },
   });
 
