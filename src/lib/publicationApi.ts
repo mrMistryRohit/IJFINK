@@ -95,10 +95,39 @@ export async function getAcceptedArticles() {
   return response.data ?? { articles: [], total_count: 0 };
 }
 
+export async function getInQueueArticles() {
+  const response = await publicationRequest<{
+    articles: PublicationArticle[];
+    total_count: number;
+    viewer?: PublicationViewer;
+  }>("/api/publication/in-queue");
+  return response.data ?? { articles: [], total_count: 0 };
+}
+
 export async function getPublicationArticle(articleId: number) {
   const response = await publicationRequest<ArticleDetails>(`/api/publication/articles/${articleId}`);
   if (!response.data?.article) throw new Error("No article details were returned.");
   return response.data;
+}
+
+export async function downloadPublicationArticleFile(articleId: number, fileId: number) {
+  const token = getToken();
+  if (!token) throw new Error("Your publication team session is missing. Please sign in again.");
+
+  let response: Response;
+  try {
+    response = await fetch(getApiUrl(`/api/publication/articles/${articleId}/files/${fileId}/download`), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch {
+    throw new Error(`Cannot reach the backend at ${API_BASE_URL}. Please try again shortly.`);
+  }
+
+  if (!response.ok) {
+    const payload = (await response.json().catch(() => null)) as ApiEnvelope<never> | null;
+    throw new Error(payload?.message ?? "The article file could not be downloaded.");
+  }
+  return response.blob();
 }
 
 export const startPublicationReview = (articleId: number) =>

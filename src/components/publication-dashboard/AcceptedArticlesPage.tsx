@@ -1,7 +1,8 @@
-import { ArrowLeft, CheckCircle2, FileText, Loader2, RotateCcw, Search, Send, Upload, XCircle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Download, FileText, Loader2, RotateCcw, Search, Send, Upload, XCircle } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import {
+  downloadPublicationArticleFile,
   getPublicationArticle,
   publishArticle,
   rejectPublicationArticle,
@@ -13,7 +14,19 @@ import {
   type PublishArticleInput,
 } from "@/lib/publicationApi";
 
-type Props = { articles: PublicationArticle[]; isLoading: boolean; error: string; onRefresh: () => Promise<void> };
+type Props = {
+  articles: PublicationArticle[];
+  isLoading: boolean;
+  error: string;
+  onRefresh: () => Promise<void>;
+  eyebrow?: string;
+  heading?: string;
+  description?: string;
+  emptyMessage?: string;
+  loadingMessage?: string;
+  backLabel?: string;
+  dateLabel?: string;
+};
 
 const formatDate = (value?: string) => {
   if (!value) return "Not available";
@@ -23,11 +36,24 @@ const formatDate = (value?: string) => {
 
 const emptyPublication: PublishArticleInput = { organization_name: "", doi: "", article_url: "", volume: "", issue: "", pages: "", publication_date: "" };
 
-const AcceptedArticlesPage = ({ articles, isLoading, error, onRefresh }: Props) => {
+const AcceptedArticlesPage = ({
+  articles,
+  isLoading,
+  error,
+  onRefresh,
+  eyebrow = "Production intake",
+  heading = "Accepted articles",
+  description = "Review manuscripts approved by the editorial team and prepare them for publication.",
+  emptyMessage = "No accepted articles match your search.",
+  loadingMessage = "Loading accepted articles…",
+  backLabel = "Back to accepted queue",
+  dateLabel = "Accepted",
+}: Props) => {
   const [query, setQuery] = useState("");
   const [details, setDetails] = useState<ArticleDetails | null>(null);
   const [isLoadingDetails, setIsLoadingDetails] = useState(false);
   const [isActing, setIsActing] = useState(false);
+  const [downloadingFileId, setDownloadingFileId] = useState<number | null>(null);
   const [feedback, setFeedback] = useState("");
   const [organizationName, setOrganizationName] = useState("");
   const [organizationRemarks, setOrganizationRemarks] = useState("");
@@ -44,6 +70,24 @@ const AcceptedArticlesPage = ({ articles, isLoading, error, onRefresh }: Props) 
   };
 
   const setStatus = (status: string) => setDetails((current) => current ? { ...current, article: { ...current.article, status } } : current);
+  const downloadFile = async (articleId: number, fileId: number, fileName?: string) => {
+    setDownloadingFileId(fileId);
+    try {
+      const blob = await downloadPublicationArticleFile(articleId, fileId);
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = fileName || `article-${articleId}-file-${fileId}`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 60000);
+    } catch (err) {
+      toast({ title: "Download failed", description: err instanceof Error ? err.message : "Unable to download the article file.", variant: "destructive" });
+    } finally {
+      setDownloadingFileId(null);
+    }
+  };
   const runAction = async (action: () => Promise<{ message?: string; data?: unknown }>, successTitle: string, nextStatus?: string) => {
     setIsActing(true);
     try {
@@ -63,11 +107,11 @@ const AcceptedArticlesPage = ({ articles, isLoading, error, onRefresh }: Props) 
     const authorName = article.author_name || [article.author_first_name, article.author_last_name].filter(Boolean).join(" ") || String(details.author?.["display_name"] || "Author unavailable");
     const status = article.status;
     return <section>
-      <button type="button" onClick={() => setDetails(null)} className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-slate-700 hover:text-primary"><ArrowLeft size={17} /> Back to accepted queue</button>
+      <button type="button" onClick={() => setDetails(null)} className="mb-6 inline-flex items-center gap-2 text-sm font-bold text-slate-700 hover:text-primary"><ArrowLeft size={17} /> {backLabel}</button>
       <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:p-7"><div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div><p className="font-mono text-xs font-bold text-primary">ARTICLE #{article.article_id}</p><h1 className="mt-3 max-w-4xl text-2xl font-extrabold leading-tight text-slate-950 md:text-3xl">{article.title}</h1></div><span className="w-fit rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-bold text-primary">{status}</span></div>{article.abstract && <p className="mt-5 max-w-5xl text-sm leading-relaxed text-slate-600">{article.abstract}</p>}<div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">{[{ label: "Author", value: authorName }, { label: "Article type", value: article.article_type }, { label: "Subject area", value: article.subject_area }, { label: "Submitted", value: formatDate(article.submitted_at) }].map((item) => <div key={item.label} className="rounded-xl bg-slate-50 p-4"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">{item.label}</p><p className="mt-1 text-sm font-bold text-slate-800">{item.value || "Not available"}</p></div>)}</div></article>
 
       <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_1.15fr]">
-        <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><h2 className="font-extrabold text-slate-950">Production files</h2><div className="mt-4 space-y-3">{details.files?.map((file, index) => <div key={file.file_id ?? index} className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3"><span className="flex h-10 w-10 items-center justify-center rounded-lg bg-white text-primary"><FileText size={18} /></span><div className="min-w-0"><p className="truncate text-sm font-bold">{file.file_name || "Article file"}</p><p className="text-xs text-slate-500">{file.file_type || "Document"}{file.version ? ` · Version ${file.version}` : ""}</p></div></div>)}{!details.files?.length && <p className="py-6 text-center text-sm text-slate-500">No article files were returned.</p>}</div>{Boolean(details.co_authors?.length) && <><h3 className="mt-6 text-sm font-extrabold text-slate-900">Co-authors</h3><div className="mt-2 flex flex-wrap gap-2">{details.co_authors?.map((author, index) => <span key={index} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{String(author.full_name || author.email || `Co-author ${index + 1}`)}</span>)}</div></>}</article>
+        <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><h2 className="font-extrabold text-slate-950">Production files</h2><div className="mt-4 space-y-3">{details.files?.map((file, index) => <div key={file.file_id ?? index} className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3"><span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-primary"><FileText size={18} /></span><div className="min-w-0 flex-1"><p className="truncate text-sm font-bold">{file.file_name || "Article file"}</p><p className="text-xs text-slate-500">{file.file_type || "Document"}{file.version ? ` · Version ${file.version}` : ""}</p></div><button type="button" disabled={!file.file_id || downloadingFileId !== null} onClick={() => file.file_id && void downloadFile(article.article_id, file.file_id, file.file_name)} className="inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-bold text-primary hover:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50" title="Download article file">{downloadingFileId === file.file_id ? <Loader2 size={15} className="animate-spin" /> : <Download size={15} />} {downloadingFileId === file.file_id ? "Saving…" : "Download"}</button></div>)}{!details.files?.length && <p className="py-6 text-center text-sm text-slate-500">No article files were returned.</p>}</div>{Boolean(details.co_authors?.length) && <><h3 className="mt-6 text-sm font-extrabold text-slate-900">Co-authors</h3><div className="mt-2 flex flex-wrap gap-2">{details.co_authors?.map((author, index) => <span key={index} className="rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">{String(author.full_name || author.email || `Co-author ${index + 1}`)}</span>)}</div></>}</article>
         <article className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><h2 className="font-extrabold text-slate-950">Publication action</h2><p className="mt-1 text-sm text-slate-500">Actions are enabled according to the article’s current status.</p>
           {status === "Accepted" && <div className="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-5"><p className="text-sm font-bold text-amber-900">Ready for production review</p><p className="mt-1 text-sm text-amber-700">Start the publication review before preparing the external submission.</p><button disabled={isActing} onClick={() => runAction(() => startPublicationReview(article.article_id), "Publication review started", "Publication Review")} className="mt-4 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white disabled:opacity-60">{isActing ? <Loader2 className="animate-spin" size={17} /> : <CheckCircle2 size={17} />} Start publication review</button></div>}
           {status === "Publication Review" && <div className="mt-5 space-y-6"><div><label className="text-sm font-bold text-slate-700">Organization name</label><input value={organizationName} onChange={(e) => setOrganizationName(e.target.value)} placeholder="e.g. IEEE Xplore Digital Library" className="mt-2 h-11 w-full rounded-xl border border-slate-200 px-4 text-sm outline-none focus:border-primary" /><textarea value={organizationRemarks} onChange={(e) => setOrganizationRemarks(e.target.value)} placeholder="Optional submission notes" className="mt-3 min-h-24 w-full rounded-xl border border-slate-200 p-4 text-sm outline-none focus:border-primary" /><button disabled={isActing || !organizationName.trim()} onClick={() => runAction(() => submitArticleToOrganization(article.article_id, organizationName.trim(), organizationRemarks.trim()), "Article submitted to organization", "Submitted To Organization")} className="mt-3 inline-flex items-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white disabled:opacity-50"><Send size={17} /> Submit to organization</button></div><div className="border-t border-slate-100 pt-5"><label className="text-sm font-bold text-slate-700">Return feedback</label><textarea value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Explain the corrections required from the editor" className="mt-2 min-h-24 w-full rounded-xl border border-slate-200 p-4 text-sm outline-none focus:border-primary" /><button disabled={isActing || !feedback.trim()} onClick={() => runAction(() => returnArticleToEditor(article.article_id, feedback.trim()), "Article returned to editor", "Editorial Review")} className="mt-3 inline-flex items-center gap-2 rounded-xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-800 hover:border-primary disabled:opacity-50"><RotateCcw size={17} /> Return to editor</button></div></div>}
@@ -78,7 +122,7 @@ const AcceptedArticlesPage = ({ articles, isLoading, error, onRefresh }: Props) 
     </section>;
   }
 
-  return <section><div className="mb-6"><span className="text-xs font-bold uppercase tracking-widest text-primary">Production intake</span><h1 className="mt-2 text-3xl font-extrabold text-slate-950">Accepted articles</h1><p className="mt-1 text-sm text-slate-500">Review manuscripts approved by the editorial team and prepare them for publication.</p></div><div className="mb-5 flex max-w-md items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 shadow-sm"><Search size={17} className="text-slate-400" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search title, author or subject" className="h-12 w-full bg-transparent text-sm outline-none" /></div>{error && <div className="rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm font-semibold text-rose-700">{error}<button onClick={onRefresh} className="ml-3 underline">Try again</button></div>}{isLoading ? <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center text-sm text-slate-500">Loading accepted articles…</div> : <div className="grid gap-5 xl:grid-cols-2">{filtered.map((article) => <article key={article.article_id} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary/30"><div className="flex items-start justify-between gap-4"><p className="font-mono text-xs font-bold text-primary">ARTICLE #{article.article_id}</p><span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">{article.status}</span></div><h2 className="mt-3 text-lg font-extrabold leading-snug text-slate-950">{article.title}</h2><p className="mt-3 text-sm text-slate-500">{article.author_name || article.author_email || "Author unavailable"} · {article.subject_area || "General"}</p><div className="mt-5 flex items-center justify-between gap-3"><p className="text-xs font-semibold text-slate-400">Accepted {formatDate(article.updated_at)}</p><button disabled={isLoadingDetails} onClick={() => openArticle(article.article_id)} className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60">{isLoadingDetails ? <Loader2 size={15} className="animate-spin" /> : <FileText size={15} />} Open workflow</button></div></article>)}{filtered.length === 0 && <div className="col-span-full rounded-2xl border border-slate-200 bg-white p-12 text-center text-sm text-slate-500">No accepted articles match your search.</div>}</div>}</section>;
+  return <section><div className="mb-6"><span className="text-xs font-bold uppercase tracking-widest text-primary">{eyebrow}</span><h1 className="mt-2 text-3xl font-extrabold text-slate-950">{heading}</h1><p className="mt-1 text-sm text-slate-500">{description}</p></div><div className="mb-5 flex max-w-md items-center gap-3 rounded-xl border border-slate-200 bg-white px-4 shadow-sm"><Search size={17} className="text-slate-400" /><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search title, author or subject" className="h-12 w-full bg-transparent text-sm outline-none" /></div>{error && <div className="rounded-2xl border border-rose-200 bg-rose-50 p-5 text-sm font-semibold text-rose-700">{error}<button onClick={onRefresh} className="ml-3 underline">Try again</button></div>}{isLoading ? <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center text-sm text-slate-500">{loadingMessage}</div> : <div className="grid gap-5 xl:grid-cols-2">{filtered.map((article) => <article key={article.article_id} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition hover:border-primary/30"><div className="flex items-start justify-between gap-4"><p className="font-mono text-xs font-bold text-primary">ARTICLE #{article.article_id}</p><span className="rounded-full bg-amber-50 px-3 py-1 text-xs font-bold text-amber-700">{article.status}</span></div><h2 className="mt-3 text-lg font-extrabold leading-snug text-slate-950">{article.title}</h2><p className="mt-3 text-sm text-slate-500">{article.author_name || article.author_email || "Author unavailable"} · {article.subject_area || "General"}</p><div className="mt-5 flex items-center justify-between gap-3"><p className="text-xs font-semibold text-slate-400">{dateLabel} {formatDate(article.updated_at)}</p><button disabled={isLoadingDetails} onClick={() => openArticle(article.article_id)} className="inline-flex items-center gap-2 rounded-xl bg-primary px-4 py-2 text-xs font-bold text-white disabled:opacity-60">{isLoadingDetails ? <Loader2 size={15} className="animate-spin" /> : <FileText size={15} />} Open workflow</button></div></article>)}{filtered.length === 0 && <div className="col-span-full rounded-2xl border border-slate-200 bg-white p-12 text-center text-sm text-slate-500">{emptyMessage}</div>}</div>}</section>;
 };
 
 export default AcceptedArticlesPage;

@@ -1743,11 +1743,36 @@ Returns articles in `Accepted` status, ready to begin publication review.
 
 ---
 
+### 10.1A List Articles In Queue
+
+**GET** `/api/publication/in-queue`
+
+Returns active publication work with an article status of `Publication Review` or `Submitted To Organization`. Articles in `Accepted` status remain in the accepted list, while `Published` articles remain in the archive.
+
+The response uses the same envelope and article shape as **10.1 List Accepted Articles**.
+
+---
+
 ### 10.2 Get Article Details (Publication Team)
 
 **GET** `/api/publication/articles/<article_id>`
 
 Returns full article details including co-authors, files, editorial assignments, editorial reviews, and existing publication record.
+
+---
+
+### 10.2A Download Article File (Publication Team)
+
+**GET** `/api/publication/articles/<article_id>/files/<file_id>/download`
+
+Downloads an article file for an authenticated Publication Team member. Access is allowed when the file belongs to the requested article and the article status is `Accepted`, `Publication Review`, or `Submitted To Organization`. The response body is the file binary and should include an appropriate `Content-Type` and `Content-Disposition` header.
+
+| Status | Meaning |
+|---|---|
+| `200` | File returned successfully |
+| `401` | Missing, invalid, or non-Publication-Team token |
+| `403` | Publication Team member is not permitted to access this article file |
+| `404` | Article or file not found |
 
 ---
 
