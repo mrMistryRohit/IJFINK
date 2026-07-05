@@ -1,6 +1,6 @@
 import { Bell, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { getStoredAuthUser } from "@/lib/authApi";
 import type { DashboardNavItem, UserDashboardSection } from "./types";
-import { userProfile } from "./userDashboardData";
 
 type UserDashboardNavbarProps = {
   activeSection: UserDashboardSection;
@@ -21,8 +21,11 @@ const UserDashboardNavbar = ({
   onToggleSidebar,
   sidebarWidthClass,
 }: UserDashboardNavbarProps) => {
-  const initials = userProfile.name
-    .split(" ")
+  const authUser = getStoredAuthUser();
+  const displayName = authUser?.display_name?.trim() || authUser?.email || "Author";
+  const initials = displayName
+    .split(/\s+/)
+    .filter(Boolean)
     .map((part) => part[0])
     .join("")
     .slice(0, 2)
@@ -60,16 +63,14 @@ const UserDashboardNavbar = ({
             type="button"
             onClick={() => onSectionChange("profile")}
             className={`hidden items-center justify-center gap-2 rounded-full px-1.5 py-1.5 pr-3 text-sm font-bold transition-colors sm:inline-flex ${
-              activeSection === "profile"
-                ? "bg-primary/10 text-slate-950"
-                : "text-slate-950 hover:bg-slate-100"
+              activeSection === "profile" ? "bg-primary/10 text-slate-950" : "text-slate-950 hover:bg-slate-100"
             }`}
             aria-label="Open profile"
           >
             <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-xs font-extrabold text-white shadow-sm shadow-primary/25">
               {initials}
             </span>
-            <span>{userProfile.name}</span>
+            <span>{displayName}</span>
           </button>
         </div>
       </div>

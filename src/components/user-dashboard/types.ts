@@ -1,4 +1,6 @@
 import type { LucideIcon } from "lucide-react";
+import type { AuthUser } from "@/lib/authApi";
+import type { UserArticle } from "@/lib/userArticlesApi";
 
 export type UserDashboardSection =
   | "overview"
@@ -102,3 +104,11 @@ export type PublishedPaper = {
   views: number;
 };
 
+export type AuthorProfile = Pick<AuthUser, "user_id" | "email" | "role" | "status" | "display_name" | "profile_id">;
+
+export type AuthorDashboardState = {
+  profile: AuthorProfile | null;
+  articles: UserArticle[];
+  isLoading: boolean;
+  error: string | null;
+};
