@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { BarChart3, FileCheck2, Files, MessageSquareText, UserCog, Users } from "lucide-react";
 import AllPapersPage from "@/components/admin-dashboard/AllPapersPage";
@@ -120,6 +120,7 @@ const Admin = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [users, setUsers] = useState<ReturnType<typeof mapApiUser>[]>([]);
+  const locallyCreatedUserIds = useRef(new Set<number>());
   const [isLoadingUsers, setIsLoadingUsers] = useState(true);
   const [usersError, setUsersError] = useState("");
   const [adminProfile, setAdminProfile] = useState<AdminProfileData | null>(getInitialAdminProfile);
@@ -161,7 +162,17 @@ const Admin = () => {
     const loadUsers = async () => {
       try {
         const data = await getAdminUsers({ includeEditorDetails: activeTab === "users" });
-        if (isCurrent) { setUsers(data.map(mapApiUser)); setUsersError(""); }
+        if (isCurrent) {
+          const apiUsers = data.map(mapApiUser);
+          apiUsers.forEach((user) => locallyCreatedUserIds.current.delete(user.id));
+          setUsers((currentUsers) => {
+            const pendingUsers = currentUsers.filter(
+              (user) => locallyCreatedUserIds.current.has(user.id) && !apiUsers.some((apiUser) => apiUser.id === user.id)
+            );
+            return [...apiUsers, ...pendingUsers];
+          });
+          setUsersError("");
+        }
       }
       catch (error) { if (isCurrent) setUsersError(error instanceof Error ? error.message : "Unable to load users."); }
       finally { if (isCurrent) setIsLoadingUsers(false); }
@@ -543,7 +554,8 @@ const Admin = () => {
         ...response.data!.user,
         is_chief_editor: newUser.role === "Chief Editor",
       });
-      setUsers((currentUsers) => [...currentUsers, createdUser]);
+      locallyCreatedUserIds.current.add(createdUser.id);
+      setUsers((currentUsers) => [...currentUsers.filter((user) => user.id !== createdUser.id), createdUser]);
       setNewUser(emptyNewUser);
       setShowCreateUser(false);
       toast({

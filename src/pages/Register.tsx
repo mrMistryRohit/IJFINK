@@ -40,6 +40,7 @@ const Register = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [hasConfirmed, setHasConfirmed] = useState(false);
 
   const updateField = (field: keyof typeof formData, value: string) => {
     setFormData((currentData) => ({
@@ -50,6 +51,10 @@ const Register = () => {
 
   const handleRegister = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    if (!hasConfirmed) {
+      return;
+    }
 
     if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim() || !formData.password.trim()) {
       toast({
@@ -268,14 +273,14 @@ const Register = () => {
                     </div>
 
                     <label className="flex items-start gap-3 rounded-xl bg-slate-50 p-3 text-sm leading-relaxed text-slate-600">
-                      <input type="checkbox" className="mt-0.5 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" />
+                      <input type="checkbox" checked={hasConfirmed} onChange={(event) => setHasConfirmed(event.target.checked)} className="mt-0.5 h-4 w-4 rounded border-slate-300 text-primary focus:ring-primary" />
                       <span>I confirm that the information provided is accurate and I want to register as a user</span>
                     </label>
 
                     <button
                       type="submit"
-                      disabled={isSubmitting}
-                      className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-white transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25 active:scale-[0.99]"
+                      disabled={isSubmitting || !hasConfirmed}
+                      className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-bold text-white transition-all hover:bg-primary/90 hover:shadow-lg hover:shadow-primary/25 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:shadow-none"
                     >
                       <UserPlus size={17} /> {isSubmitting ? "Creating Account..." : "Register User Account"}
                     </button>
