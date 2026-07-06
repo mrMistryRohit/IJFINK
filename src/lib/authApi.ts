@@ -41,6 +41,15 @@ export type AuthResponse = {
   };
 };
 
+export type ForgotPasswordResponse = {
+  success: boolean;
+  message?: string;
+  data?: {
+    email?: string;
+    reset_token?: string;
+  };
+};
+
 export function getAccessToken() {
   return localStorage.getItem("access_token") ?? sessionStorage.getItem("access_token");
 }
@@ -55,7 +64,7 @@ export function getStoredAuthUser() {
   }
 }
 
-async function parseJsonResponse(response: Response) {
+async function parseJsonResponse<T>(response: Response) {
   const text = await response.text();
 
   if (!text) {
@@ -63,7 +72,7 @@ async function parseJsonResponse(response: Response) {
   }
 
   try {
-    return JSON.parse(text) as AuthResponse;
+    return JSON.parse(text) as T;
   } catch {
     return null;
   }
@@ -78,7 +87,7 @@ export async function loginUser(payload: LoginRequest) {
     body: JSON.stringify(payload),
   });
 
-  const data = await parseJsonResponse(response);
+  const data = await parseJsonResponse<AuthResponse>(response);
 
   if (!response.ok || !data?.success) {
     throw new Error(data?.message ?? "Login failed.");
@@ -96,10 +105,69 @@ export async function registerAuthor(payload: AuthorRegisterRequest) {
     body: JSON.stringify(payload),
   });
 
-  const data = await parseJsonResponse(response);
+  const data = await parseJsonResponse<AuthResponse>(response);
 
   if (!response.ok || !data?.success) {
     throw new Error(data?.message ?? "Registration failed.");
+  }
+
+  return data;
+}
+
+export async function requestPasswordReset(email: string) {
+  const response = await fetch(getApiUrl("/api/auth/forgot-password"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email }),
+  });
+
+  const data = await parseJsonResponse<ForgotPasswordResponse>(response);
+
+  if (!response.ok || !data?.success) {
+    throw new Error(data?.message ?? "Unable to send the password reset code.");
+  }
+
+  return data;
+}
+
+export async function verifyPasswordResetOtp(email: string, otp: string) {
+  const response = await fetch(getApiUrl("/api/auth/verify-otp"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ email, otp }),
+  });
+
+  const data = await parseJsonResponse<ForgotPasswordResponse>(response);
+
+  if (!response.ok || !data?.success) {
+    throw new Error(data?.message ?? "OTP verification failed.");
+  }
+
+  return data;
+}
+
+export async function resetPassword(email: string, resetToken: string, newPassword: string, confirmPassword: string) {
+  const response = await fetch(getApiUrl("/api/auth/reset-password"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      email,
+      reset_token: resetToken,
+      new_password: newPassword,
+      confirm_password: confirmPassword,
+    }),
+  });
+
+  const data = await parseJsonResponse<ForgotPasswordResponse>(response);
+
+  if (!response.ok || !data?.success) {
+    throw new Error(data?.message ?? "Unable to reset the password.");
   }
 
   return data;
