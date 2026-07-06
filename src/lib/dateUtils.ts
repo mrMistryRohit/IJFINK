@@ -29,6 +29,18 @@ export function formatApiDate(value?: string | null, options?: Intl.DateTimeForm
   return date.toLocaleDateString("en-GB", options);
 }
 
+export function formatApiDateTimeIST(value?: string | null, options?: Intl.DateTimeFormatOptions) {
+  const date = parseApiDate(value);
+  if (!date) return value || "Not available";
+
+  return new Intl.DateTimeFormat("en-IN", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: "Asia/Kolkata",
+    ...options,
+  }).format(date);
+}
+
 export function getApiDateTimestamp(value?: string | null) {
   return parseApiDate(value)?.getTime() ?? 0;
 }

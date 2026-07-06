@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import { toast } from "@/hooks/use-toast";
 import { downloadPublishedArticleFile } from "@/lib/publicationApi";
 import type { PublicationRecord } from "@/lib/publicationApi";
+import { formatApiDateTimeIST } from "@/lib/dateUtils";
 
 const PublishedArticlesPage = ({ publications, isLoading, error, onRetry }: { publications: PublicationRecord[]; isLoading: boolean; error: string; onRetry: () => void }) => {
   const [query, setQuery] = useState("");
@@ -47,7 +48,7 @@ const PublishedArticlesPage = ({ publications, isLoading, error, onRetry }: { pu
             <article key={item.publication_id} className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
               <div className="flex items-start justify-between gap-4"><div><p className="font-mono text-xs font-bold text-primary">DOI {item.doi}</p><h2 className="mt-2 text-lg font-extrabold leading-snug text-slate-950">{item.title || `Article #${item.article_id}`}</h2></div><span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">Published</span></div>
               <p className="mt-3 text-sm text-slate-500">{item.author_name || "Author unavailable"} | {item.organization_name}</p>
-              <div className="mt-5 grid grid-cols-2 gap-3 rounded-xl bg-slate-50 p-4 text-sm sm:grid-cols-4"><div><p className="text-xs text-slate-400">Volume</p><p className="font-bold">{item.volume}</p></div><div><p className="text-xs text-slate-400">Issue</p><p className="font-bold">{item.issue}</p></div><div><p className="text-xs text-slate-400">Pages</p><p className="font-bold">{item.pages}</p></div><div><p className="text-xs text-slate-400">Date</p><p className="font-bold">{item.publication_date}</p></div></div>
+              <div className="mt-5 grid grid-cols-2 gap-3 rounded-xl bg-slate-50 p-4 text-sm sm:grid-cols-4"><div><p className="text-xs text-slate-400">Volume</p><p className="font-bold">{item.volume}</p></div><div><p className="text-xs text-slate-400">Issue</p><p className="font-bold">{item.issue}</p></div><div><p className="text-xs text-slate-400">Pages</p><p className="font-bold">{item.pages}</p></div><div><p className="text-xs text-slate-400">Date</p><p className="font-bold">{formatApiDateTimeIST(item.publication_date)}</p></div></div>
               <button
                 type="button"
                 disabled={downloadingId === item.article_id}
