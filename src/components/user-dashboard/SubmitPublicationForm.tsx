@@ -13,8 +13,8 @@ import {
 } from "lucide-react";
 import { articleTypes } from "./userDashboardData";
 import { getStoredAuthUser } from "@/lib/authApi";
+import { getApiUrl } from "@/lib/apiConfig";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? import.meta.env.VITE_API_URL ?? "https://api.ijfink.com";
 const SUBMIT_ROOT = "/user/submit-paper";
 const DEFAULT_STEP = "details";
 
@@ -88,7 +88,6 @@ const emptyCoAuthor = (): CoAuthorForm => ({ fullName: "", email: "", institutio
 const emptyFiles = (): SubmissionFiles => ({ mainManuscript: null, editableManuscript: null, coverLetter: null, figures: [], supplementaryFiles: [], videoAbstract: null, copyrightForm: null });
 const isBlank = (value: string) => value.trim().length === 0;
 const isFilledCoAuthor = (author: CoAuthorForm) => Object.values(author).some((value) => !isBlank(value));
-const normalizeApiBaseUrl = (value: string) => value.replace(/\/$/, "");
 
 const buildSubmissionPayload = (details: SubmissionDetails, coAuthors: CoAuthorForm[], selectedFiles: SubmissionFiles) => {
   const keywords = details.keywords.split(",").map((keyword) => keyword.trim()).filter(Boolean);
@@ -223,7 +222,7 @@ const SubmitPublicationForm = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${normalizeApiBaseUrl(API_BASE_URL)}/api/user/articles`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: formData });
+      const response = await fetch(getApiUrl("/api/user/articles"), { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: formData });
       const responseText = await response.text();
       let responseData: { success?: boolean; message?: string } | null = null;
       try { responseData = responseText ? JSON.parse(responseText) : null; } catch { responseData = null; }
@@ -380,4 +379,3 @@ const SubmitPublicationForm = () => {
 };
 
 export default SubmitPublicationForm;
-

@@ -46,14 +46,16 @@ const MySubmissionDetailsPage = () => {
   const [detail, setDetail] = useState<UserArticleDetail | null>(null);
   const [reviewData, setReviewData] = useState<UserEditorialReviewDetails | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isReviewLoading, setIsReviewLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reviewError, setReviewError] = useState<string | null>(null);
   const [responseLetter, setResponseLetter] = useState("");
   const [revisionFile, setRevisionFile] = useState<File | null>(null);
   const [submittedRevisionFileName, setSubmittedRevisionFileName] = useState<string | null>(null);
   const [hasSubmittedRevision, setHasSubmittedRevision] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const loadDetail = async () => {
+  const loadArticle = async () => {
     if (!Number.isFinite(articleId)) {
       setError("Invalid article ID.");
       setIsLoading(false);
@@ -64,9 +66,8 @@ const MySubmissionDetailsPage = () => {
     setError(null);
 
     try {
-      const [articleDetail, editorialReviewDetail] = await Promise.all([getMyArticleDetails(articleId), getMyEditorialReviewDetails(articleId)]);
+      const articleDetail = await getMyArticleDetails(articleId);
       setDetail(articleDetail);
-      setReviewData(editorialReviewDetail);
     } catch (caughtError) {
       if (caughtError instanceof ApiError && (caughtError.status === 401 || caughtError.status === 403)) {
         clearAuthSession();
@@ -75,18 +76,44 @@ const MySubmissionDetailsPage = () => {
         return;
       }
 
-      if (caughtError instanceof ApiError && caughtError.status === 404) {
-        setError("No editorial review available yet.");
-      } else {
-        setError(caughtError instanceof Error ? caughtError.message : "Unable to load article details.");
-      }
+      setError(caughtError instanceof Error ? caughtError.message : "Unable to load article details.");
     } finally {
       setIsLoading(false);
     }
   };
 
+  const loadEditorialReview = async () => {
+    if (!Number.isFinite(articleId)) return;
+
+    setIsReviewLoading(true);
+    setReviewError(null);
+
+    try {
+      const editorialReviewDetail = await getMyEditorialReviewDetails(articleId);
+      setReviewData(editorialReviewDetail);
+    } catch (caughtError) {
+      if (caughtError instanceof ApiError && caughtError.status === 404) {
+        setReviewData(null);
+        setReviewError("No editorial review available yet.");
+        return;
+      }
+
+      if (caughtError instanceof ApiError && (caughtError.status === 401 || caughtError.status === 403)) {
+        clearAuthSession();
+        toast({ title: "Session expired", description: "Please sign in again to continue.", variant: "destructive" });
+        window.location.href = "/login";
+        return;
+      }
+
+      setReviewError(caughtError instanceof Error ? caughtError.message : "Unable to load editorial review details.");
+    } finally {
+      setIsReviewLoading(false);
+    }
+  };
+
   useEffect(() => {
-    void loadDetail();
+    void loadArticle();
+    void loadEditorialReview();
   }, [articleId]);
 
   const article = detail?.article ?? null;
@@ -124,7 +151,8 @@ const MySubmissionDetailsPage = () => {
       toast({ title: "Revision submitted", description: "Your revised manuscript has been sent successfully." });
       setResponseLetter("");
       setRevisionFile(null);
-      void loadDetail();
+      void loadArticle();
+      void loadEditorialReview();
     } catch (caughtError) {
       if (caughtError instanceof ApiError) {
         toast({ title: "Revision failed", description: caughtError.message, variant: "destructive" });
@@ -146,7 +174,7 @@ const MySubmissionDetailsPage = () => {
             <p className="text-xs font-bold uppercase tracking-widest text-rose-700">Unable to load details</p>
             <p className="mt-2 text-sm text-slate-700">{error}</p>
           </div>
-          <button type="button" onClick={() => void loadDetail()} className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white"><RefreshCcw size={16} /> Retry</button>
+          <button type="button" onClick={() => void loadArticle()} className="inline-flex items-center gap-2 rounded-xl bg-slate-950 px-4 py-2.5 text-sm font-bold text-white"><RefreshCcw size={16} /> Retry</button>
         </div>
       </div>
     );
@@ -183,13 +211,21 @@ const MySubmissionDetailsPage = () => {
           </div>
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h2 className="text-sm font-bold uppercase tracking-wider text-slate-400">Editorial Review</h2>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Decision</p><p className="mt-2 font-semibold text-slate-900">{currentReview?.decision || "Not available"}</p></div>
-              <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Reviewed</p><p className="mt-2 font-semibold text-slate-900">{formatDateIST(currentReview?.reviewed_at)}</p></div>
-              <div className="rounded-xl bg-slate-50 p-4 md:col-span-2"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Editorial review ID</p><p className="mt-2 font-semibold text-slate-900">{currentReview?.editorial_review_id ?? editorialReviewId ?? "Not available"}</p></div>
-            </div>
-            <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Editor comment</p><p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-700">{currentReview?.comments || "No editor comment was returned for this revision request."}</p></div>
-            {reviewHistory.length > 1 && <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Review history</p><div className="mt-3 space-y-3">{reviewHistory.slice(1).map((review, index) => <div key={`${review.editorial_review_id ?? index}`} className="rounded-xl border border-white bg-white p-3 text-sm text-slate-700 shadow-sm"><p className="font-bold text-slate-900">{review.decision || "Review"}</p><p className="mt-1 whitespace-pre-wrap leading-6">{review.comments || "No comments available."}</p><p className="mt-2 text-xs text-slate-500">Reviewed {formatDateIST(review.reviewed_at)}</p></div>)}</div></div>}
+            {isReviewLoading ? <p className="mt-4 text-sm text-slate-500">Loading editorial review...</p> : null}
+            {!isReviewLoading && reviewError ? <p className="mt-4 text-sm text-slate-500">{reviewError}</p> : null}
+            {!isReviewLoading && currentReview && (
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Decision</p><p className="mt-2 font-semibold text-slate-900">{currentReview.decision || "Not available"}</p></div>
+                <div className="rounded-xl bg-slate-50 p-4"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Reviewed</p><p className="mt-2 font-semibold text-slate-900">{formatDateIST(currentReview.reviewed_at)}</p></div>
+                <div className="rounded-xl bg-slate-50 p-4 md:col-span-2"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Editorial review ID</p><p className="mt-2 font-semibold text-slate-900">{currentReview.editorial_review_id ?? editorialReviewId ?? "Not available"}</p></div>
+              </div>
+            )}
+            {!isReviewLoading && currentReview && (
+              <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Editor comment</p><p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-slate-700">{currentReview.comments || "No editor comment was returned for this revision request."}</p></div>
+            )}
+            {!isReviewLoading && reviewHistory.length > 1 && (
+              <div className="mt-4 rounded-xl border border-slate-100 bg-slate-50 p-4"><p className="text-xs font-bold uppercase tracking-wider text-slate-400">Review history</p><div className="mt-3 space-y-3">{reviewHistory.slice(1).map((review, index) => <div key={`${review.editorial_review_id ?? index}`} className="rounded-xl border border-white bg-white p-3 text-sm text-slate-700 shadow-sm"><p className="font-bold text-slate-900">{review.decision || "Review"}</p><p className="mt-1 whitespace-pre-wrap leading-6">{review.comments || "No comments available."}</p><p className="mt-2 text-xs text-slate-500">Reviewed {formatDateIST(review.reviewed_at)}</p></div>)}</div></div>
+            )}
           </div>
         </div>
         <div className="space-y-5">

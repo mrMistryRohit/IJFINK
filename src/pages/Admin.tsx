@@ -478,6 +478,14 @@ const Admin = () => {
   const toggleUserStatus = async (userId: number) => {
     const user = users.find((item) => item.id === userId);
     if (!user) return;
+    if (adminProfile?.userId === userId) {
+      toast({
+        title: "Action blocked",
+        description: "You cannot deactivate your own account from this screen.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     setUpdatingUserId(userId);
     try {
@@ -623,6 +631,7 @@ const Admin = () => {
         isLoading={isLoadingUsers}
         loadError={usersError}
         updatingUserId={updatingUserId}
+        currentUserId={adminProfile?.userId ?? null}
         onCreateUserClick={openCreateUserModal}
         onRetry={retryUsers}
         onToggleUserStatus={toggleUserStatus}
