@@ -13,7 +13,6 @@ const InQueueArticlesPage = (props: Props) => (
     {...props}
     eyebrow="Publication workflow"
     heading="Articles In-Queue"
-    description="Track manuscripts currently being prepared or awaiting confirmation from the publishing organization."
     emptyMessage="No articles are currently in the publication queue."
     loadingMessage="Loading queued articles…"
     backLabel="Back to articles in queue"

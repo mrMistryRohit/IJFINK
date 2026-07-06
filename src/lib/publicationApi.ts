@@ -130,6 +130,37 @@ export async function downloadPublicationArticleFile(articleId: number, fileId: 
   return response.blob();
 }
 
+export async function downloadPublishedArticleFile(articleId: number) {
+  const token = getToken();
+  if (!token) throw new Error("Your publication team session is missing. Please sign in again.");
+
+  let response: Response;
+  try {
+    response = await fetch(getApiUrl(`/api/publication/published/${articleId}/download`), {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  } catch {
+    throw new Error(`Cannot reach the backend at ${API_BASE_URL}. Please try again shortly.`);
+  }
+
+  if (!response.ok) {
+    let payload: ApiEnvelope<never> | null = null;
+    try {
+      payload = (await response.json()) as ApiEnvelope<never> | null;
+    } catch {
+      payload = null;
+    }
+
+    if (response.status === 401 || response.status === 403) {
+      throw new Error(payload?.message ?? "Access denied. Your account is not allowed to download this file.");
+    }
+
+    throw new Error(payload?.message ?? "The published article file could not be downloaded.");
+  }
+
+  return response.blob();
+}
+
 export const startPublicationReview = (articleId: number) =>
   publicationRequest<{ article_id: number; new_article_status: string }>(
     `/api/publication/articles/${articleId}/start-review`,

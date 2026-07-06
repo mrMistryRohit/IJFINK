@@ -78,11 +78,9 @@ const PublicationTeam = () => {
 
     refreshActivePage();
     if (activeSection === "profile" || !activeSection) return;
-    const interval = window.setInterval(refreshActivePage, 15000);
     window.addEventListener("focus", refreshActivePage);
     window.addEventListener("online", refreshActivePage);
     return () => {
-      window.clearInterval(interval);
       window.removeEventListener("focus", refreshActivePage);
       window.removeEventListener("online", refreshActivePage);
     };

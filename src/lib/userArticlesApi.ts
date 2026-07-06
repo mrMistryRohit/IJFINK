@@ -10,6 +10,7 @@ export type UserArticleAuthor = {
   institution?: string;
   orcid?: string | null;
   phone_number?: string | null;
+  email?: string;
 };
 
 export type UserArticleFile = {
@@ -22,6 +23,24 @@ export type UserArticleFile = {
   uploaded_at?: string;
 };
 
+export type UserArticleCoAuthor = {
+  co_author_id?: number;
+  full_name?: string;
+  email?: string;
+  institution?: string;
+  orcid?: string | null;
+  author_order?: number;
+};
+
+export type UserArticleScreening = {
+  screening_id?: number;
+  decision?: string;
+  remarks?: string;
+  screened_by?: string;
+  screened_at?: string;
+  status?: string;
+} | null;
+
 export type UserArticle = {
   article_id: number;
   title: string;
@@ -32,18 +51,55 @@ export type UserArticle = {
   status?: string;
   submitted_at?: string;
   updated_at?: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  institution?: string;
+  orcid?: string | null;
+  phone_number?: string | null;
   author?: UserArticleAuthor;
-  co_authors?: Array<{
-    co_author_id?: number;
-    full_name?: string;
-    email?: string;
-    institution?: string;
-    orcid?: string | null;
-    author_order?: number;
-  }>;
+  co_authors?: UserArticleCoAuthor[];
   files?: UserArticleFile[];
   thumbnail_url?: string;
   cover_image_url?: string;
+};
+
+export type UserArticleDetail = {
+  article: UserArticle & {
+    screening?: UserArticleScreening;
+  };
+  author?: UserArticleAuthor;
+  co_authors?: UserArticleCoAuthor[];
+  files?: UserArticleFile[];
+  revisions?: Array<{
+    editorial_review_id?: number;
+    revision_id?: number;
+    revision_number?: number;
+    response_letter?: string;
+    file_name?: string;
+    file_path?: string;
+    file_version?: number;
+    submitted_at?: string;
+    updated_at?: string;
+    comments?: string;
+  }>;
+  screening?: UserArticleScreening;
+};
+
+export type EditorialReviewRecord = {
+  editorial_review_id?: number;
+  assignment_id?: number;
+  editor_id?: number;
+  decision?: string;
+  comments?: string;
+  reviewed_at?: string;
+};
+
+export type UserEditorialReviewDetails = {
+  article_id: number;
+  article_status: string;
+  current_review?: EditorialReviewRecord | null;
+  review_history?: EditorialReviewRecord[];
 };
 
 type ApiResponse<T> = {
@@ -113,3 +169,35 @@ export async function getMyArticles() {
   return response.data?.articles ?? [];
 }
 
+export async function getMyArticleDetails(articleId: number) {
+  const response = await userRequest<UserArticleDetail>(`/api/user/articles/${articleId}`);
+  return response.data ?? null;
+}
+
+export async function submitArticleRevision(articleId: number, revisionData: { editorial_review_id: number; response_letter: string }, revisionFile: File) {
+  const accessToken = getAccessToken();
+
+  if (!accessToken) {
+    throw new ApiError("Your session is missing. Please sign in again.", 401);
+  }
+
+  const formData = new FormData();
+  formData.append("revision_data", JSON.stringify(revisionData));
+  formData.append("revision_file", revisionFile);
+
+  const response = await fetch(getApiUrl(`/api/user/articles/${articleId}/revisions`), {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+    body: formData,
+  });
+
+  return await parseResponse<{ article?: UserArticle; revision?: unknown }>(response);
+}
+
+
+export async function getMyEditorialReviewDetails(articleId: number) {
+  const response = await userRequest<UserEditorialReviewDetails>(`/api/user/articles/${articleId}/editorial-review`);
+  return response.data ?? null;
+}

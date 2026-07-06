@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { BarChart3, Bell, BookOpen, FileText, GitPullRequest, Upload, UserCog } from "lucide-react";
 import DashboardOverview from "@/components/user-dashboard/DashboardOverview";
+import MySubmissionDetailsPage from "@/components/user-dashboard/MySubmissionDetailsPage";
 import MySubmissionsPage from "@/components/user-dashboard/MySubmissionsPage";
 import NotificationsPanel from "@/components/user-dashboard/NotificationsPanel";
 import PublishedPublicationsPage from "@/components/user-dashboard/PublishedPublicationsPage";
@@ -36,6 +37,7 @@ const userSectionRoutes: Record<UserDashboardSection, string> = {
 };
 
 const userRouteSections = Object.fromEntries(Object.entries(userSectionRoutes).map(([section, route]) => [route, section])) as Record<string, UserDashboardSection>;
+const NOTIFICATIONS_VIEWED_KEY = "user_notifications_viewed_at";
 
 const UserDashboard = () => {
   const location = useLocation();
@@ -45,6 +47,7 @@ const UserDashboard = () => {
   const [articles, setArticles] = useState<UserArticle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notificationsViewedAt, setNotificationsViewedAt] = useState(() => Number(localStorage.getItem(NOTIFICATIONS_VIEWED_KEY) ?? 0));
 
   const loadArticles = async () => {
     setIsLoading(true);
@@ -72,7 +75,17 @@ const UserDashboard = () => {
 
   const sectionRoute = location.pathname.split("/").filter(Boolean)[1];
   const activeSection = sectionRoute ? userRouteSections[sectionRoute] : undefined;
-  const unreadCount = useMemo(() => articles.filter((article) => article.status && article.status !== "Published").length, [articles]);
+  const isArticleDetailsRoute = /^\/user\/my-submission(s)?\/\d+\/details$/.test(location.pathname);
+  const isRevisionSubmissionRoute = /^\/user\/my-submissions\/revision\/revision-submission\/\d+$/.test(location.pathname) || /^\/user\/my-submission\/revision\/revision-submission\/\d+$/.test(location.pathname);
+  const unreadCount = useMemo(
+    () =>
+      articles.filter((article) => {
+        if (!article.updated_at && !article.submitted_at) return false;
+        const updatedAt = new Date((article.updated_at || article.submitted_at || "").replace(" ", "T")).getTime();
+        return Number.isFinite(updatedAt) && updatedAt > notificationsViewedAt && article.status !== "Published";
+      }).length,
+    [articles, notificationsViewedAt]
+  );
   const sidebarNavItems = navItems.filter((item) => item.id !== "notifications");
   const sidebarWidthClass = isSidebarCollapsed ? "lg:ml-16" : "lg:ml-[12.5rem]";
 
@@ -81,8 +94,13 @@ const UserDashboard = () => {
     await logoutUser();
     navigate("/login", { replace: true });
   };
+  const handleNotificationsViewed = () => {
+    const viewedAt = Date.now();
+    localStorage.setItem(NOTIFICATIONS_VIEWED_KEY, String(viewedAt));
+    setNotificationsViewedAt(viewedAt);
+  };
 
-  if (!activeSection) return <Navigate to="/user/dashboard" replace />;
+  if (!activeSection && !isArticleDetailsRoute && !isRevisionSubmissionRoute) return <Navigate to="/user/dashboard" replace />;
 
   const sectionContent = {
     overview: <DashboardOverview profile={profile} articles={articles} isLoading={isLoading} error={error} onSectionChange={navigateToSection} onRetry={loadArticles} />,
@@ -90,30 +108,32 @@ const UserDashboard = () => {
     submit: <SubmitPublicationForm profile={profile} />,
     revisions: <RevisionsPage articles={articles} isLoading={isLoading} error={error} onRetry={loadArticles} />,
     publications: <PublishedPublicationsPage articles={articles} isLoading={isLoading} error={error} onRetry={loadArticles} />,
-    notifications: <NotificationsPanel articles={articles} />,
+    notifications: <NotificationsPanel articles={articles} onViewed={handleNotificationsViewed} />, 
     profile: <UserProfilePanel profile={profile} />,
   } as const;
+
+  const content = isArticleDetailsRoute || isRevisionSubmissionRoute ? <MySubmissionDetailsPage /> : sectionContent[activeSection as UserDashboardSection];
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900">
       <UserDashboardSidebar
-        activeSection={activeSection}
+        activeSection={(activeSection as UserDashboardSection) ?? "overview"}
         navItems={sidebarNavItems}
         onSectionChange={navigateToSection}
         isCollapsed={isSidebarCollapsed}
         onLogout={() => void handleLogout()}
       />
       <UserDashboardNavbar
-        activeSection={activeSection}
+        activeSection={(activeSection as UserDashboardSection) ?? "overview"}
         navItems={sidebarNavItems}
         onSectionChange={navigateToSection}
-        unreadCount={unreadCount}
+        unreadCount={activeSection === "notifications" ? 0 : unreadCount}
         isSidebarCollapsed={isSidebarCollapsed}
         onToggleSidebar={() => setIsSidebarCollapsed((prev) => !prev)}
         sidebarWidthClass={sidebarWidthClass}
       />
       <div className={`min-w-0 transition-all duration-300 ${sidebarWidthClass}`}>
-        <main className="mx-auto min-h-[calc(100vh-134px)] max-w-7xl px-4 py-6 md:px-6 md:py-8">{sectionContent[activeSection]}</main>
+        <main className="mx-auto min-h-[calc(100vh-134px)] max-w-7xl px-4 py-6 md:px-6 md:py-8">{content}</main>
         <UserDashboardFooter />
       </div>
     </div>

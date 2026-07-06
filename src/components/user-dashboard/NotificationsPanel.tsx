@@ -1,8 +1,10 @@
 import { Bell, CheckCircle2 } from "lucide-react";
+import { useEffect } from "react";
 import type { UserArticle } from "@/lib/userArticlesApi";
 
 type NotificationsPanelProps = {
   articles: UserArticle[];
+  onViewed: () => void;
 };
 
 const sourceTone = {
@@ -11,7 +13,11 @@ const sourceTone = {
   System: "bg-slate-100 text-slate-700",
 } as const;
 
-const NotificationsPanel = ({ articles }: NotificationsPanelProps) => {
+const NotificationsPanel = ({ articles, onViewed }: NotificationsPanelProps) => {
+  useEffect(() => {
+    onViewed();
+  }, [onViewed]);
+
   const notifications = articles.slice(0, 6).map((article) => ({
     id: String(article.article_id),
     title: article.status === "Published" ? "Article published" : article.status === "Revision Requested" ? "Revision requested" : "Article update",

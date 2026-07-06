@@ -13,7 +13,19 @@ Authorization: Bearer <access_token>
 ## Table of Contents
 
 1. [Authentication](#1-authentication)
+   - [1.1 Login](#11-login)
+   - [1.2 Register](#12-register)
+   - [1.3 Logout](#13-logout)
+   - [1.4 Forgot Password — Request OTP](#14-forgot-password--request-otp)
+   - [1.5 Forgot Password — Verify OTP](#15-forgot-password--verify-otp)
+   - [1.6 Forgot Password — Reset Password](#16-forgot-password--reset-password)
 2. [Admin — User Management](#2-admin--user-management)
+   - [2.1 Get All Users](#21-get-all-users)
+   - [2.2 Get User Details](#22-get-user-details)
+   - [2.3 Toggle User Status](#23-toggle-user-status)
+   - [2.4 Get All Articles](#24-get-all-articles)
+   - [2.5 Get All Published Articles](#25-get-all-published-articles)
+   - [2.6 Download Article File (Admin)](#26-download-article-file-admin)
 3. [Contact Queries](#3-contact-queries)
 4. [Author — Articles](#4-author--articles)
 5. [Screening](#5-screening)
@@ -219,6 +231,193 @@ Public endpoint — no token required.
 
 ---
 
+### 1.3 Logout
+
+**POST** `/api/auth/logout`  
+Requires **any valid JWT** in the `Authorization` header.
+
+Since tokens are stateless JWTs, the server validates the token and instructs the client to wipe storage. **The client must clear `localStorage` and `sessionStorage` upon receiving a `200`.**
+
+No request body required.
+
+**Success Response `200`**
+```json
+{
+  "success": true,
+  "message": "Logged out successfully. Please clear local and session storage on the client.",
+  "data": {
+    "user_id": 7,
+    "email": "jane.doe@university.edu",
+    "role": "Author",
+    "action": "clear_storage"
+  }
+}
+```
+
+**Error Responses**
+
+| Status | Scenario |
+|---|---|
+| `401` | Missing or invalid JWT token |
+
+> **Client-side responsibility:** On `200`, remove the token and any cached user data:
+> ```js
+> localStorage.clear();
+> sessionStorage.clear();
+> ```
+
+---
+
+---
+
+## Forgot Password Flow
+
+The forgot-password flow is a 3-step process. All three endpoints are public — no JWT required.
+
+```
+Step 1 — POST /api/auth/forgot-password   → OTP emailed (5-min TTL in Redis)
+Step 2 — POST /api/auth/verify-otp        → OTP checked → reset_token issued (10-min TTL)
+Step 3 — POST /api/auth/reset-password    → new password set, reset_token invalidated
+```
+
+---
+
+### 1.4 Forgot Password — Request OTP
+
+**POST** `/api/auth/forgot-password`  
+Public — no token required.
+
+Generates a 6-digit OTP, stores it in Redis for **5 minutes**, and emails it to the address on file.
+
+> To prevent user-enumeration, the response is identical whether or not the email exists.
+
+**Request Body**
+
+| Field | Type | Required |
+|---|---|---|
+| `email` | string | Yes |
+
+```json
+{ "email": "jane.doe@university.edu" }
+```
+
+**Success Response `200`**
+```json
+{
+  "success": true,
+  "message": "If that email is registered, an OTP has been sent."
+}
+```
+
+**Error Responses**
+
+| Status | Scenario |
+|---|---|
+| `400` | `email` field missing |
+| `500` | Redis or SMTP failure |
+
+---
+
+### 1.5 Forgot Password — Verify OTP
+
+**POST** `/api/auth/verify-otp`  
+Public — no token required.
+
+Validates the OTP emailed in Step 1. On success:
+- The OTP is **immediately deleted** from Redis (single-use).
+- A 64-character `reset_token` is issued with a **10-minute TTL**.
+
+**Request Body**
+
+| Field | Type | Required |
+|---|---|---|
+| `email` | string | Yes |
+| `otp` | string | Yes | 6-digit code from email |
+
+```json
+{
+  "email": "jane.doe@university.edu",
+  "otp": "482916"
+}
+```
+
+**Success Response `200`**
+```json
+{
+  "success": true,
+  "message": "OTP verified successfully.",
+  "data": {
+    "reset_token": "aB3xZ9...64chars",
+    "expires_in_seconds": 600
+  }
+}
+```
+
+**Error Responses**
+
+| Status | Scenario |
+|---|---|
+| `400` | Missing `email` or `otp` |
+| `400` | OTP expired (> 5 min) or never issued |
+| `400` | OTP does not match |
+| `500` | Redis failure |
+
+---
+
+### 1.6 Forgot Password — Reset Password
+
+**POST** `/api/auth/reset-password`  
+Public — no token required.
+
+Sets a new password using the `reset_token` from Step 2. The token is invalidated immediately after a successful reset.
+
+**Request Body**
+
+| Field | Type | Required | Notes |
+|---|---|---|---|
+| `email` | string | Yes | Same email used in Steps 1 & 2 |
+| `reset_token` | string | Yes | Token returned by `/verify-otp` |
+| `new_password` | string | Yes | Minimum 8 characters |
+| `confirm_password` | string | Yes | Must match `new_password` |
+
+```json
+{
+  "email": "jane.doe@university.edu",
+  "reset_token": "aB3xZ9...64chars",
+  "new_password": "NewSecure123!",
+  "confirm_password": "NewSecure123!"
+}
+```
+
+**Success Response `200`**
+```json
+{
+  "success": true,
+  "message": "Password has been reset successfully. You can now log in."
+}
+```
+
+**Error Responses**
+
+| Status | Scenario |
+|---|---|
+| `400` | Any required field missing |
+| `400` | `new_password` and `confirm_password` do not match |
+| `400` | Password shorter than 8 characters |
+| `400` | `reset_token` expired (> 10 min after OTP verification) or invalid |
+| `403` | Account is inactive |
+| `404` | User not found |
+| `500` | Database or Redis failure |
+
+> **Complete client-side flow:**
+> ```
+> 1. Collect email → POST /api/auth/forgot-password
+> 2. Show OTP input → POST /api/auth/verify-otp → store reset_token in memory
+> 3. Show new-password form → POST /api/auth/reset-password → redirect to login
+> ```
+
+---
+
 ## 2. Admin — User Management
 
 All endpoints require **Admin JWT**.
@@ -366,6 +565,141 @@ GET /api/admin/users?role=Editor&status=Active
 |---|---|
 | `400` | Invalid status value; user already in that status; admin trying to self-deactivate |
 | `404` | User not found |
+
+---
+
+### 2.4 Get All Articles
+
+**GET** `/api/admin/articles`  
+Requires **Admin JWT**.
+
+Returns all articles across all authors, with optional filtering.
+
+**Query Parameters (optional)**
+
+| Parameter | Values | Notes |
+|---|---|---|
+| `status` | e.g. `Submitted`, `Admin Approved`, `Editorial Review`, `Accepted`, `Published`, `Rejected` | Filter by article status |
+| `article_type` | e.g. `Research Article`, `Review Article` | Filter by article type |
+
+**Example Requests**
+```
+GET /api/admin/articles
+GET /api/admin/articles?status=Submitted
+GET /api/admin/articles?article_type=Research+Article
+GET /api/admin/articles?status=Accepted&article_type=Review+Article
+```
+
+**Success Response `200`**
+```json
+{
+  "success": true,
+  "message": "Retrieved 5 article(s).",
+  "data": {
+    "articles": [
+      {
+        "article_id": 42,
+        "title": "Deep Learning Applications in Medical Imaging",
+        "abstract": "This paper explores...",
+        "keywords": "deep learning, medical imaging, CNN",
+        "article_type": "Research Article",
+        "subject_area": "Computer Science",
+        "status": "Submitted",
+        "submitted_at": "2024-11-15 12:00:00",
+        "updated_at": "2024-11-15 12:00:00",
+        "author_name": "Jane Doe",
+        "author_email": "jane.doe@university.edu"
+      }
+    ],
+    "total_count": 5,
+    "filters_applied": {
+      "status": null,
+      "article_type": null
+    }
+  }
+}
+```
+
+**Error Responses**
+
+| Status | Scenario |
+|---|---|
+| `401` | Missing or invalid JWT token |
+| `403` | Caller is not an Admin |
+
+---
+
+### 2.5 Get All Published Articles
+
+**GET** `/api/admin/articles/published`  
+Requires **Admin JWT**.
+
+Returns all published articles with full publication metadata (DOI, URL, volume, issue, pages, file path).
+
+**Success Response `200`**
+```json
+{
+  "success": true,
+  "message": "Retrieved 6 published article(s).",
+  "data": {
+    "publications": [
+      {
+        "publication_id": 3,
+        "article_id": 42,
+        "title": "Deep Learning Applications in Medical Imaging",
+        "abstract": "This paper explores...",
+        "keywords": "deep learning, medical imaging, CNN",
+        "article_type": "Research Article",
+        "subject_area": "Computer Science",
+        "organization_name": "IEEE Xplore Digital Library",
+        "doi": "10.1109/TPAMI.2024.001234",
+        "article_url": "https://ieeexplore.ieee.org/document/1234567",
+        "volume": "46",
+        "issue": "3",
+        "pages": "1024-1038",
+        "publication_date": "2024-12-01",
+        "published_file_name": "published_paper.pdf",
+        "published_file_path": "42/published_paper.pdf",
+        "published_file_type": "application/pdf",
+        "author_name": "Jane Doe",
+        "author_email": "jane.doe@university.edu"
+      }
+    ],
+    "total_count": 6
+  }
+}
+```
+
+**Error Responses**
+
+| Status | Scenario |
+|---|---|
+| `401` | Missing or invalid JWT token |
+| `403` | Caller is not an Admin |
+
+---
+
+### 2.6 Download Article File (Admin)
+
+**GET** `/api/admin/articles/<article_id>/files/<file_id>/download`  
+Requires **Admin JWT**.
+
+Streams the raw file bytes as an attachment. Admins may download files on any article.
+
+**Success Response `200`**
+Binary file stream with headers:
+```
+Content-Disposition: attachment; filename="manuscript.pdf"
+Content-Type: application/pdf (or the file's actual MIME type)
+```
+
+**Error Responses**
+
+| Status | Scenario |
+|---|---|
+| `401` | Missing or invalid JWT token |
+| `403` | Caller is not an Admin |
+| `404` | Article, file record, or file not found on disk |
 
 ---
 
@@ -697,7 +1031,51 @@ Returns the same detailed structure as the Submit Article response (article, aut
 
 ---
 
-### 4.4 Submit Revision
+### 4.4 Get Editorial Review Details
+
+**GET** `/api/user/articles/<article_id>/editorial-review`
+
+Returns the latest editorial review for the article, including the editor note and the full review history visible to the author.
+
+**Success Response `200`**
+```json
+{
+  "success": true,
+  "message": "Editorial review details retrieved successfully.",
+  "data": {
+    "article_id": 42,
+    "article_status": "Revision Requested",
+    "current_review": {
+      "editorial_review_id": 8,
+      "assignment_id": 11,
+      "editor_id": 2,
+      "decision": "Minor Revision",
+      "comments": "Please expand the related work section.",
+      "reviewed_at": "2024-11-17 14:00:00"
+    },
+    "review_history": [
+      {
+        "editorial_review_id": 8,
+        "assignment_id": 11,
+        "editor_id": 2,
+        "decision": "Minor Revision",
+        "comments": "Please expand the related work section.",
+        "reviewed_at": "2024-11-17 14:00:00"
+      }
+    ]
+  }
+}
+```
+
+**Error Responses**
+
+| Status | Scenario |
+|---|---|
+| `404` | Article not found or has no editorial review yet |
+
+---
+
+### 4.5 Submit Revision
 
 **POST** `/api/user/articles/<article_id>/revisions`  
 Content-Type: `multipart/form-data`  
@@ -753,6 +1131,29 @@ curl -X POST http://localhost:5000/api/user/articles/42/revisions \
 |---|---|
 | `400` | Article is not in `Revision Requested` status; editorial_review_id not found; decision is not Minor/Major Revision; missing revision_file |
 | `404` | Article not found; editorial review not found |
+
+---
+
+### 4.5 Download Article File
+
+**GET** `/api/user/articles/<article_id>/files/<file_id>/download`
+
+Streams the raw file bytes as an attachment. Only the article's own author may download its files.
+
+**Success Response `200`**
+Binary file stream with headers:
+```
+Content-Disposition: attachment; filename="manuscript.pdf"
+Content-Type: application/pdf (or the file's actual MIME type)
+```
+
+**Error Responses**
+
+| Status | Scenario |
+|---|---|
+| `401` | Missing or invalid JWT token |
+| `403` | Article belongs to another author |
+| `404` | Article, file record, or file not found on disk |
 
 ---
 
@@ -1299,7 +1700,30 @@ Only the assigned editor or chief editor can access.
 
 ---
 
-### 8.5 Submit Editorial Review
+### 8.5 Download Article File (Editor)
+
+**GET** `/api/editor/articles/<article_id>/files/<file_id>/download`
+
+Streams the raw file bytes as an attachment. The assigned editor or the chief editor may download; a regular editor not assigned to the article is forbidden.
+
+**Success Response `200`**
+Binary file stream with headers:
+```
+Content-Disposition: attachment; filename="manuscript.pdf"
+Content-Type: application/pdf (or the file's actual MIME type)
+```
+
+**Error Responses**
+
+| Status | Scenario |
+|---|---|
+| `401` | Missing or invalid JWT token |
+| `403` | Editor is not assigned to this article (and is not chief editor) |
+| `404` | Article, file record, or file not found on disk |
+
+---
+
+### 8.6 Submit Editorial Review
 
 **POST** `/api/editor/review`
 
@@ -1378,7 +1802,7 @@ Decision aliases (case-insensitive input accepted):
 
 ---
 
-### 8.6 Update Editorial Review
+### 8.7 Update Editorial Review
 
 **PUT** `/api/editor/review/<review_id>`
 
@@ -1411,7 +1835,7 @@ Only the latest review for an assignment can be updated. Article must not be Pub
 
 ---
 
-### 8.7 Review History
+### 8.8 Review History
 
 **GET** `/api/editor/reviews`
 
@@ -1442,7 +1866,7 @@ Returns all reviews submitted by the calling editor.
 
 ---
 
-### 8.8 Revision Requests
+### 8.9 Revision Requests
 
 **GET** `/api/editor/revision-requests`
 
@@ -1471,7 +1895,7 @@ Returns articles assigned to this editor where the status is `Revision Requested
 
 ---
 
-### 8.9 Editor Notifications
+### 8.10 Editor Notifications
 
 **GET** `/api/editor/notifications`
 
@@ -1498,7 +1922,7 @@ Returns articles assigned to this editor where the status is `Revision Requested
 
 ---
 
-### 8.10 Mark Notification as Read
+### 8.11 Mark Notification as Read
 
 **PUT** `/api/editor/notifications/<notification_id>/read`
 
@@ -1525,8 +1949,6 @@ All endpoints require a **Chief Editor JWT** (Editor role + `is_chief_editor = t
 ### 9.1 Chief Editor Dashboard
 
 **GET** `/api/chief-editor/dashboard`
-
-> Note: this blueprint is registered but not yet in `app/__init__.py`. Register it with `url_prefix="/api/chief-editor"` to activate.
 
 **Success Response `200`**
 ```json
@@ -1598,7 +2020,30 @@ Returns full article with files, review history, revision history, notifications
 
 ---
 
-### 9.4 List All Editors (Chief Editor)
+### 9.4 Download Article File (Chief Editor)
+
+**GET** `/api/chief-editor/articles/<article_id>/files/<file_id>/download`
+
+Streams the raw file bytes as an attachment. Any chief editor may download files on any article.
+
+**Success Response `200`**
+Binary file stream with headers:
+```
+Content-Disposition: attachment; filename="manuscript.pdf"
+Content-Type: application/pdf (or the file's actual MIME type)
+```
+
+**Error Responses**
+
+| Status | Scenario |
+|---|---|
+| `401` | Missing or invalid JWT token |
+| `403` | Caller is not a chief editor |
+| `404` | Article, file record, or file not found on disk |
+
+---
+
+### 9.5 List All Editors (Chief Editor)
 
 **GET** `/api/chief-editor/editors`
 
@@ -1632,7 +2077,7 @@ Returns all editors with performance stats.
 
 ---
 
-### 9.5 Get Editor Details
+### 9.6 Get Editor Details
 
 **GET** `/api/chief-editor/editors/<editor_id>`
 
@@ -1640,7 +2085,7 @@ Returns one editor with full performance stats.
 
 ---
 
-### 9.6 Pending Reviews
+### 9.7 Pending Reviews
 
 **GET** `/api/chief-editor/pending`
 
@@ -1648,7 +2093,7 @@ Returns all active assignments where the article is in `Editorial Review` status
 
 ---
 
-### 9.7 Revision Requests (Chief Editor)
+### 9.8 Revision Requests (Chief Editor)
 
 **GET** `/api/chief-editor/revisions`
 
@@ -1656,7 +2101,7 @@ Returns all articles across all editors where status is `Revision Requested`.
 
 ---
 
-### 9.8 Statistics
+### 9.9 Statistics
 
 **GET** `/api/chief-editor/statistics`
 
@@ -1687,7 +2132,7 @@ Returns all articles across all editors where status is `Revision Requested`.
 
 ---
 
-### 9.9 Chief Editor Notifications
+### 9.10 Chief Editor Notifications
 
 **GET** `/api/chief-editor/notifications`
 
@@ -1695,7 +2140,7 @@ Same structure as editor notifications.
 
 ---
 
-### 9.10 Mark Chief Editor Notification as Read
+### 9.11 Mark Chief Editor Notification as Read
 
 **PUT** `/api/chief-editor/notifications/<notification_id>/read`
 
@@ -1743,16 +2188,6 @@ Returns articles in `Accepted` status, ready to begin publication review.
 
 ---
 
-### 10.1A List Articles In Queue
-
-**GET** `/api/publication/in-queue`
-
-Returns active publication work with an article status of `Publication Review` or `Submitted To Organization`. Articles in `Accepted` status remain in the accepted list, while `Published` articles remain in the archive.
-
-The response uses the same envelope and article shape as **10.1 List Accepted Articles**.
-
----
-
 ### 10.2 Get Article Details (Publication Team)
 
 **GET** `/api/publication/articles/<article_id>`
@@ -1761,22 +2196,30 @@ Returns full article details including co-authors, files, editorial assignments,
 
 ---
 
-### 10.2A Download Article File (Publication Team)
+### 10.3 Download Article File (Publication Team)
 
 **GET** `/api/publication/articles/<article_id>/files/<file_id>/download`
 
-Downloads an article file for an authenticated Publication Team member. Access is allowed when the file belongs to the requested article and the article status is `Accepted`, `Publication Review`, or `Submitted To Organization`. The response body is the file binary and should include an appropriate `Content-Type` and `Content-Disposition` header.
+Streams the raw file bytes as an attachment. Publication team members may download files on any article that has reached `Accepted` or `Published` status.
 
-| Status | Meaning |
+**Success Response `200`**
+Binary file stream with headers:
+```
+Content-Disposition: attachment; filename="manuscript.pdf"
+Content-Type: application/pdf (or the file's actual MIME type)
+```
+
+**Error Responses**
+
+| Status | Scenario |
 |---|---|
-| `200` | File returned successfully |
-| `401` | Missing, invalid, or non-Publication-Team token |
-| `403` | Publication Team member is not permitted to access this article file |
-| `404` | Article or file not found |
+| `401` | Missing or invalid JWT token |
+| `403` | Article has not yet reached `Accepted` status |
+| `404` | Article, file record, or file not found on disk |
 
 ---
 
-### 10.3 Start Publication Review
+### 10.4 Start Publication Review
 
 **POST** `/api/publication/articles/<article_id>/start-review`
 
@@ -1796,7 +2239,7 @@ Changes article status from `Accepted` → `Publication Review`. No request body
 
 ---
 
-### 10.4 Return Article to Editor
+### 10.5 Return Article to Editor
 
 **POST** `/api/publication/articles/<article_id>/return-to-editor`
 
@@ -1833,7 +2276,7 @@ Article must be in `Publication Review` status.
 
 ---
 
-### 10.5 Submit to Organization
+### 10.6 Submit to Organization
 
 **POST** `/api/publication/articles/<article_id>/submit-organization`
 
@@ -1869,7 +2312,7 @@ Article must be in `Publication Review` status. Changes status to `Submitted To 
 
 ---
 
-### 10.6 Reject Article (Publication)
+### 10.7 Reject Article (Publication)
 
 **POST** `/api/publication/articles/<article_id>/reject`
 
@@ -1902,7 +2345,7 @@ Article must be in `Submitted To Organization` status. Changes status to `Reject
 
 ---
 
-### 10.7 Publish Article
+### 10.8 Publish Article
 
 **POST** `/api/publication/articles/<article_id>/publish`  
 Content-Type: `multipart/form-data`  
@@ -1975,7 +2418,7 @@ curl -X POST http://localhost:5000/api/publication/articles/42/publish \
 
 ---
 
-### 10.8 List Published Articles
+### 10.9 List Published Articles
 
 **GET** `/api/publication/published`
 
@@ -2014,11 +2457,47 @@ curl -X POST http://localhost:5000/api/publication/articles/42/publish \
 
 ---
 
-### 10.9 Get Published Article
+### 10.10 Get Published Article
 
 **GET** `/api/publication/published/<article_id>`
 
 Returns full publication details including article metadata, author, and file path.
+
+---
+
+### 10.11 List Articles in Publication Queue
+
+**GET** `/api/publication/in-queue`
+
+Returns unpublished articles whose current status is `Submitted To Organization`, ordered by the oldest status update first.
+
+**Success Response `200`**
+```json
+{
+  "success": true,
+  "message": "Retrieved 1 article(s) in publication queue.",
+  "data": {
+    "articles": [
+      {
+        "article_id": 42,
+        "title": "Deep Learning Applications in Medical Imaging",
+        "article_type": "Research Article",
+        "subject_area": "Computer Science",
+        "status": "Submitted To Organization",
+        "submitted_at": "2024-11-15 12:00:00",
+        "updated_at": "2024-11-20 10:00:00",
+        "author_name": "Jane Doe",
+        "author_email": "jane.doe@university.edu"
+      }
+    ],
+    "total_count": 1,
+    "viewer": {
+      "publication_team_id": 1,
+      "name": "Tom Jones"
+    }
+  }
+}
+```
 
 ---
 
