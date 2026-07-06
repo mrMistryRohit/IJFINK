@@ -16,7 +16,6 @@ const UserProfilePanel = ({ profile }: UserProfilePanelProps) => {
       <div className="mb-6">
         <span className="text-xs font-bold uppercase tracking-widest text-primary">Profile</span>
         <h1 className="mt-2 text-3xl font-extrabold text-slate-950">Author Profile</h1>
-        <p className="mt-1 text-sm text-slate-500">This view shows the signed-in account record only.</p>
       </div>
 
       <div className="space-y-5">

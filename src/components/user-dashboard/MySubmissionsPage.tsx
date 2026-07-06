@@ -8,7 +8,7 @@ import {
   FileText,
   RefreshCcw,
   Search,
-  Sparkles,
+  Plus,
   UserRound,
   X,
 } from "lucide-react";
@@ -214,19 +214,13 @@ const MySubmissionsPage = ({ onSectionChange }: MySubmissionsPageProps) => {
         <div>
           <span className="text-xs font-bold uppercase tracking-widest text-primary">My Articles</span>
           <h1 className="mt-2 text-3xl font-extrabold text-slate-950">Articles Created by You</h1>
-          <p className="mt-1 text-sm text-slate-500">
-            Track the full set of articles you submitted from your logged-in author account.
-          </p>
-          <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-slate-400">
-            Signed in as {activeAuthorName}
-          </p>
         </div>
         <button
           type="button"
           onClick={() => onSectionChange("submit")}
           className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-primary/90"
         >
-          <Sparkles size={17} /> Submit New Article
+          <Plus size={17} /> Submit New Article
         </button>
       </div>
 
@@ -331,7 +325,7 @@ const MySubmissionsPage = ({ onSectionChange }: MySubmissionsPageProps) => {
               onClick={() => onSectionChange("submit")}
               className="inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-bold text-white transition-colors hover:bg-primary/90"
             >
-              <Sparkles size={17} /> Submit Article
+              <Plus size={17} /> Submit Article
             </button>
             <button
               type="button"

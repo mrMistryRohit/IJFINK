@@ -38,7 +38,7 @@ const DashboardOverview = ({ profile, articles, isLoading, error, onSectionChang
   const unreadCount = liveItems.filter((article) => article.status && article.status !== "Published").length;
 
   const stats = [
-    { label: "Active Submissions", value: activeCount, sub: "From the backend", icon: FileText, tone: "bg-blue-50 text-blue-600" },
+    { label: "Active Submissions", value: activeCount, sub: "Submitted", icon: FileText, tone: "bg-blue-50 text-blue-600" },
     { label: "Publications", value: publishedCount, sub: "Published records", icon: BookOpen, tone: "bg-violet-50 text-violet-600" },
     { label: "Accepted", value: acceptedCount, sub: "Ready for publication", icon: CheckCircle2, tone: "bg-emerald-50 text-emerald-600" },
     { label: "New Updates", value: unreadCount, sub: "Article status updates", icon: Bell, tone: "bg-rose-50 text-rose-600" },
@@ -52,7 +52,6 @@ const DashboardOverview = ({ profile, articles, isLoading, error, onSectionChang
         <div>
           <p className="text-sm text-slate-500">Welcome back,</p>
           <h1 className="mt-1 text-3xl font-extrabold text-slate-950">{displayName}</h1>
-          <p className="mt-2 text-xs font-semibold uppercase tracking-wider text-slate-400">Live author data from `/api/user/articles`</p>
         </div>
         <div className="flex flex-wrap gap-3">
           <button type="button" onClick={() => onSectionChange("submissions")} className="rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-950 shadow-sm transition-colors hover:border-primary hover:text-primary">View articles</button>
