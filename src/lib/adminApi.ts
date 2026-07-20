@@ -31,10 +31,71 @@ export type CreatePrivilegedUserRequest = {
   is_chief_editor?: boolean;
 };
 
-type ApiResponse<T> = {
+export type ApiResponse<T> = {
   success: boolean;
   message?: string;
   data?: T;
+};
+
+export type ArticleFile = {
+  file_id: number;
+  file_name: string;
+  file_type: string;
+  file_path: string;
+  version: number;
+  uploaded_at: string;
+};
+
+export type AssignableEditor = {
+  editor_id: number;
+  first_name: string;
+  last_name: string;
+  institution?: string;
+  is_chief_editor: boolean;
+  user_id: number;
+  email: string;
+  status: string;
+};
+
+export type AdminArticle = {
+  article_id: number;
+  title: string;
+  abstract?: string;
+  keywords?: string | string[];
+  article_type: string;
+  subject_area: string;
+  status: string;
+  submitted_at: string;
+  updated_at?: string;
+  author_name?: string;
+  author_email?: string;
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  institution?: string;
+  screening_status?: string;
+  assigned_editor?: AssignableEditor | null;
+  files?: ArticleFile[];
+};
+
+export type ScreeningArticle = AdminArticle & {
+  phone_number?: string;
+  orcid?: string;
+  co_authors?: Array<{
+    full_name: string;
+    email: string;
+    institution?: string;
+    orcid?: string | null;
+    author_order?: number;
+  }>;
+  files: ArticleFile[];
+  screening?: {
+    screening_id: number;
+    decision: "Approved" | "Rejected";
+    remarks?: string;
+    screened_at?: string;
+    screened_by?: string;
+  } | null;
 };
 
 function getAccessToken() {
@@ -144,4 +205,54 @@ export async function updateAdminUserStatus(userId: number, status: "Active" | "
   }
 
   return response;
+}
+
+export async function getPendingScreeningArticles() {
+  const response = await adminRequest<{ articles: AdminArticle[]; total_count: number }>("/api/screening/pending");
+  return response.data?.articles ?? [];
+}
+
+export async function getScreeningArticle(articleId: number) {
+  const response = await adminRequest<{ article: ScreeningArticle }>(`/api/screening/${articleId}`);
+  if (!response.data?.article) throw new Error("No article details were returned.");
+  return response.data.article;
+}
+
+export async function getScreeningFile(fileId: number) {
+  const accessToken = getAccessToken();
+  if (!accessToken) throw new Error("Your admin session is missing. Please sign in again.");
+
+  const response = await fetch(getApiUrl(`/api/screening/files/${fileId}`), {
+    headers: { Authorization: `Bearer ${accessToken}` },
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => null) as ApiResponse<never> | null;
+    throw new Error(data?.message ?? "The file could not be loaded.");
+  }
+  return response.blob();
+}
+
+export async function submitScreeningDecision(articleId: number, decision: "Approved" | "Rejected", remarks: string) {
+  return adminRequest<{ screening_id: number; article_id: number; decision: string; new_article_status: string }>(
+    `/api/screening/${articleId}/decision`,
+    { method: "POST", body: JSON.stringify({ decision, remarks: remarks.trim() }) }
+  );
+}
+
+export async function getAssignableEditors() {
+  const response = await adminRequest<{ editors: AssignableEditor[]; total_count: number }>("/api/editorial/assignable-editors");
+  return response.data?.editors ?? [];
+}
+
+export async function assignEditorToArticle(articleId: number, editorId: number) {
+  return adminRequest<{ assignment_id: number; article_id: number; editor_id: number; status: string; assigned_at: string }>(
+    "/api/editorial/assignments",
+    { method: "POST", body: JSON.stringify({ article_id: articleId, editor_id: editorId }) }
+  );
+}
+
+export async function getAdminArticles() {
+  const response = await adminRequest<{ articles: AdminArticle[]; total_count: number }>("/api/admin/articles");
+  return response.data?.articles ?? [];
 }

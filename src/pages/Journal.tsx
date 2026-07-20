@@ -135,7 +135,7 @@ const manuscriptStructure = [
       "Author name(s)",
       "Affiliation(s)",
       "Corresponding author details",
-      "ORCID ID (if available)",
+      "ORCiD (if available)",
     ],
   },
   {
