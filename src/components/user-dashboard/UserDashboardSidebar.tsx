@@ -7,14 +7,10 @@ type UserDashboardSidebarProps = {
   navItems: DashboardNavItem[];
   onSectionChange: (section: UserDashboardSection) => void;
   isCollapsed: boolean;
+  onLogout: () => void;
 };
 
-const UserDashboardSidebar = ({
-  activeSection,
-  navItems,
-  onSectionChange,
-  isCollapsed,
-}: UserDashboardSidebarProps) => {
+const UserDashboardSidebar = ({ activeSection, navItems, onSectionChange, isCollapsed, onLogout }: UserDashboardSidebarProps) => {
   return (
     <aside
       className={`fixed bottom-0 left-0 top-0 z-40 hidden border-r border-white/10 bg-gradient-to-b from-[hsl(220,55%,10%)] via-[hsl(220,48%,13%)] to-[hsl(168,55%,14%)] text-white transition-all duration-300 lg:flex lg:flex-col ${
@@ -56,6 +52,7 @@ const UserDashboardSidebar = ({
       <div className={`mt-auto ${isCollapsed ? "p-2" : "p-3"}`}>
         <button
           type="button"
+          onClick={onLogout}
           className={`flex items-center rounded-xl border border-white/10 bg-white/[0.06] text-left text-sm font-bold text-white/80 transition-colors hover:bg-rose-500 hover:text-white hover:border-rose-400 ${
             isCollapsed ? "mx-auto h-10 w-10 justify-center p-0" : "w-full gap-3 px-4 py-3"
           }`}

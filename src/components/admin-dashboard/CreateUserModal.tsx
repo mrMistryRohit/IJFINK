@@ -1,5 +1,5 @@
-import { Plus, X } from "lucide-react";
-import type { FormEvent } from "react";
+import { Eye, EyeOff, Plus, X } from "lucide-react";
+import { useState, type FormEvent } from "react";
 import type { NewPrivilegedUser } from "./types";
 
 type CreateUserModalProps = {
@@ -13,6 +13,8 @@ type CreateUserModalProps = {
 
 const CreateUserModal = ({ createUserError, newUser, isCreating, onClose, onCreateUser, onNewUserChange }: CreateUserModalProps) => {
   const requiresInstitution = newUser.role === "Editor" || newUser.role === "Chief Editor";
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -108,29 +110,39 @@ const CreateUserModal = ({ createUserError, newUser, isCreating, onClose, onCrea
           )}
           <div>
             <label className="mb-2 block text-sm font-bold text-slate-700">Password</label>
+            <div className="relative">
             <input
               value={newUser.password}
               onChange={(event) => onNewUserChange({ ...newUser, password: event.target.value })}
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Enter password"
               required
               autoComplete="new-password"
               disabled={isCreating}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white/90 px-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/90 pl-4 pr-11 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
+            <button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary" aria-label={showPassword ? "Hide password" : "Show password"}>
+              {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+            </button>
+            </div>
           </div>
           <div>
             <label className="mb-2 block text-sm font-bold text-slate-700">Confirm password</label>
+            <div className="relative">
             <input
               value={newUser.confirmPassword}
               onChange={(event) => onNewUserChange({ ...newUser, confirmPassword: event.target.value })}
-              type="password"
+              type={showConfirmPassword ? "text" : "password"}
               placeholder="Confirm password"
               required
               autoComplete="new-password"
               disabled={isCreating}
-              className="h-11 w-full rounded-xl border border-slate-200 bg-white/90 px-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className="h-11 w-full rounded-xl border border-slate-200 bg-white/90 pl-4 pr-11 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
             />
+            <button type="button" onClick={() => setShowConfirmPassword((value) => !value)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-primary" aria-label={showConfirmPassword ? "Hide confirm password" : "Show confirm password"}>
+              {showConfirmPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+            </button>
+            </div>
           </div>
         </div>
 

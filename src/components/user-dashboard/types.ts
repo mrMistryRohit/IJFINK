@@ -1,4 +1,6 @@
 import type { LucideIcon } from "lucide-react";
+import type { AuthUser } from "@/lib/authApi";
+import type { UserArticle } from "@/lib/userArticlesApi";
 
 export type UserDashboardSection =
   | "overview"
@@ -45,6 +47,40 @@ export type UserSubmission = {
   date: string;
 };
 
+export type ArticleStatus =
+  | "Submitted"
+  | "Admin Approved"
+  | "Editorial Review"
+  | "Revision Requested"
+  | "Accepted"
+  | "Publication Review"
+  | "Submitted To Organization"
+  | "Published"
+  | "Rejected"
+  | string;
+
+export type ArticleListItem = {
+  articleId: number;
+  title: string;
+  abstract: string;
+  articleType: string;
+  subjectArea: string;
+  status: ArticleStatus;
+  submittedAt: string;
+  updatedAt: string;
+  authorName: string;
+  authorInstitution?: string;
+  coAuthorCount: number;
+  keywords: string[];
+  thumbnailUrl?: string | null;
+  files: Array<{
+    fileName?: string;
+    fileType?: string;
+    filePath?: string;
+    fileUrl?: string;
+  }>;
+};
+
 export type RevisionComment = {
   id: string;
   reviewer: string;
@@ -68,3 +104,11 @@ export type PublishedPaper = {
   views: number;
 };
 
+export type AuthorProfile = Pick<AuthUser, "user_id" | "email" | "role" | "status" | "display_name" | "profile_id">;
+
+export type AuthorDashboardState = {
+  profile: AuthorProfile | null;
+  articles: UserArticle[];
+  isLoading: boolean;
+  error: string | null;
+};

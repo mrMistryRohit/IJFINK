@@ -16,12 +16,13 @@ type UserManagementPageProps = {
   isLoading: boolean;
   loadError: string;
   updatingUserId: number | null;
+  currentUserId?: number | null;
   onCreateUserClick: () => void;
   onRetry: () => void;
   onToggleUserStatus: (userId: number) => void;
 };
 
-const UserManagementPage = ({ users, isLoading, loadError, updatingUserId, onCreateUserClick, onRetry, onToggleUserStatus }: UserManagementPageProps) => {
+const UserManagementPage = ({ users, isLoading, loadError, updatingUserId, currentUserId, onCreateUserClick, onRetry, onToggleUserStatus }: UserManagementPageProps) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
@@ -132,30 +133,35 @@ const UserManagementPage = ({ users, isLoading, loadError, updatingUserId, onCre
                   </td>
                 </tr>
               )}
-              {visibleUsers.map((user) => (
-                <tr key={user.id} className="hover:bg-slate-50/70">
-                  <td className="px-5 py-4 font-bold text-slate-900">{user.name}</td>
-                  <td className="px-5 py-4 text-slate-500">{user.email}</td>
-                  <td className="px-5 py-4">
-                    <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">{user.role}</span>
-                  </td>
-                  <td className="px-5 py-4">
-                    <span className={`rounded-full px-3 py-1 text-xs font-bold ${user.status === "Active" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
-                      {user.status}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4 text-right">
-                    <button
-                      type="button"
-                      onClick={() => onToggleUserStatus(user.id)}
-                      disabled={updatingUserId === user.id}
-                      className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 transition-colors hover:border-primary hover:text-primary"
-                    >
-                      {updatingUserId === user.id ? "Updating..." : user.status === "Active" ? "Deactivate" : "Activate"}
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {visibleUsers.map((user) => {
+                const isSelf = currentUserId === user.id;
+
+                return (
+                  <tr key={user.id} className="hover:bg-slate-50/70">
+                    <td className="px-5 py-4 font-bold text-slate-900">{user.name}</td>
+                    <td className="px-5 py-4 text-slate-500">{user.email}</td>
+                    <td className="px-5 py-4">
+                      <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700">{user.role}</span>
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className={`rounded-full px-3 py-1 text-xs font-bold ${user.status === "Active" ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"}`}>
+                        {user.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-right">
+                      <button
+                        type="button"
+                        onClick={() => onToggleUserStatus(user.id)}
+                        disabled={updatingUserId === user.id || isSelf}
+                        title={isSelf ? "You cannot deactivate your own account." : undefined}
+                        className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 transition-colors hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {isSelf ? "Current User" : updatingUserId === user.id ? "Updating..." : user.status === "Active" ? "Deactivate" : "Activate"}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

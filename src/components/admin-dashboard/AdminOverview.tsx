@@ -1,15 +1,14 @@
-import { Activity, CheckCircle2, ClipboardList, FileText, MessageSquareText, Users } from "lucide-react";
+import { Activity, CheckCircle2, ClipboardList, FileText, Users } from "lucide-react";
 import type { UserRole } from "./types";
 
 type AdminOverviewProps = {
   totalUsers: number;
   activeUsers: number;
-  queryCount: number;
   roleCounts: Record<UserRole, number>;
   isSystemOnline: boolean | null;
 };
 
-const AdminOverview = ({ totalUsers, activeUsers, queryCount, roleCounts, isSystemOnline }: AdminOverviewProps) => {
+const AdminOverview = ({ totalUsers, activeUsers, roleCounts, isSystemOnline }: AdminOverviewProps) => {
   const systemStatus = isSystemOnline === null ? "Checking..." : isSystemOnline ? "System Online" : "System Offline";
   const systemTone =
     isSystemOnline === null
@@ -20,7 +19,6 @@ const AdminOverview = ({ totalUsers, activeUsers, queryCount, roleCounts, isSyst
   const dashboardStats = [
     { label: "Total Users", value: totalUsers, sub: "All registered accounts", icon: Users, tone: "text-blue-600 bg-blue-50" },
     { label: "Active Users", value: activeUsers, sub: "Currently enabled", icon: CheckCircle2, tone: "text-emerald-600 bg-emerald-50" },
-    { label: "Submitted Queries", value: queryCount, sub: "Contact page entries", icon: MessageSquareText, tone: "text-amber-600 bg-amber-50" },
     { label: "Published Articles", value: 0, sub: "Live journal records", icon: FileText, tone: "text-purple-600 bg-purple-50" },
     { label: "Manuscripts", value: 0, sub: "Pending submissions", icon: ClipboardList, tone: "text-cyan-600 bg-cyan-50" },
     { label: "Site Health", value: systemStatus, sub: "Backend API status", icon: Activity, tone: systemTone },

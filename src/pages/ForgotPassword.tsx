@@ -2,8 +2,8 @@ import { useEffect, useState, type FormEvent } from "react";
 import { CheckCircle2, Eye, EyeOff, KeyRound, LockKeyhole, Mail, ShieldCheck } from "lucide-react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "@/hooks/use-toast";
+import { requestPasswordReset, resetPassword as submitPasswordReset, verifyPasswordResetOtp } from "@/lib/authApi";
 
-const DEMO_OTP = "123456";
 type RecoveryStep = "email" | "otp" | "reset" | "success";
 
 const routes: Record<RecoveryStep, string> = {
@@ -24,44 +24,87 @@ const ForgotPassword = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const step = getStep(location.pathname);
-  const [email, setEmail] = useState(() => sessionStorage.getItem("demo_reset_email") ?? "");
+  const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [resetToken, setResetToken] = useState("");
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
 
   useEffect(() => {
-    const hasEmail = Boolean(sessionStorage.getItem("demo_reset_email"));
-    const verified = sessionStorage.getItem("demo_reset_verified") === "true";
-    if (step === "otp" && !hasEmail) navigate(routes.email, { replace: true });
-    if (step === "reset" && !verified) navigate(hasEmail ? routes.otp : routes.email, { replace: true });
-    if (step === "success" && !verified) navigate(routes.email, { replace: true });
-  }, [navigate, step]);
+    if (step === "otp" && !email) navigate(routes.email, { replace: true });
+    if (step === "reset" && (!email || !resetToken)) navigate(email ? routes.otp : routes.email, { replace: true });
+    if (step === "success" && (!email || !resetToken)) navigate(routes.email, { replace: true });
+  }, [email, navigate, resetToken, step]);
 
-  const sendOtp = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    if (!email.trim() || !email.includes("@")) {
-      toast({ title: "Enter a valid email", description: "Use the email connected to your account.", variant: "destructive" });
-      return;
-    }
-    sessionStorage.setItem("demo_reset_email", email.trim());
-    sessionStorage.removeItem("demo_reset_verified");
-    toast({ title: "Demo OTP sent", description: "Use 123456 to continue." });
+  const sendOtpRequest = async (nextEmail: string) => {
+    const response = await requestPasswordReset(nextEmail);
+    setEmail(nextEmail);
+    setOtp("");
+    setResetToken("");
+    toast({ title: "OTP sent", description: response.message ?? "Check your email for the verification code." });
     navigate(routes.otp);
   };
 
-  const verifyOtp = (event: FormEvent<HTMLFormElement>) => {
+  const sendOtp = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (otp !== DEMO_OTP) {
-      toast({ title: "Incorrect OTP", description: "For this demo, enter 123456.", variant: "destructive" });
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !trimmedEmail.includes("@")) {
+      toast({ title: "Enter a valid email", description: "Use the email connected to your account.", variant: "destructive" });
       return;
     }
-    sessionStorage.setItem("demo_reset_verified", "true");
-    navigate(routes.reset);
+
+    setIsSendingOtp(true);
+    try {
+      await sendOtpRequest(trimmedEmail);
+    } catch (error) {
+      toast({ title: "Request failed", description: error instanceof Error ? error.message : "Unable to send verification code.", variant: "destructive" });
+    } finally {
+      setIsSendingOtp(false);
+    }
   };
 
-  const resetPassword = (event: FormEvent<HTMLFormElement>) => {
+  const resendOtp = async () => {
+    if (!email) return;
+    setIsSendingOtp(true);
+    try {
+      await sendOtpRequest(email);
+    } catch (error) {
+      toast({ title: "Resend failed", description: error instanceof Error ? error.message : "Unable to resend verification code.", variant: "destructive" });
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  const verifyOtp = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!otp.trim()) {
+      toast({ title: "Enter the OTP", description: "Please type the 6-digit verification code.", variant: "destructive" });
+      return;
+    }
+
+    setIsVerifyingOtp(true);
+    try {
+      const response = await verifyPasswordResetOtp(email, otp.trim());
+      const token = response.data?.reset_token;
+      if (!token) {
+        throw new Error("The server did not return a reset token.");
+      }
+      setResetToken(token);
+      toast({ title: "OTP verified", description: response.message ?? "You can now reset your password." });
+      navigate(routes.reset);
+    } catch (error) {
+      toast({ title: "Verification failed", description: error instanceof Error ? error.message : "Unable to verify OTP.", variant: "destructive" });
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+  };
+
+  const resetPassword = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (password.length < 8) {
       toast({ title: "Password is too short", description: "Use at least 8 characters.", variant: "destructive" });
@@ -71,16 +114,35 @@ const ForgotPassword = () => {
       toast({ title: "Passwords do not match", description: "Enter the same password in both fields.", variant: "destructive" });
       return;
     }
-    navigate(routes.success);
+    if (!resetToken) {
+      toast({ title: "Session expired", description: "Please verify your OTP again.", variant: "destructive" });
+      navigate(routes.email, { replace: true });
+      return;
+    }
+
+    setIsResetting(true);
+    try {
+      const response = await submitPasswordReset(email, resetToken, password, confirmPassword);
+      toast({ title: "Password reset complete", description: response.message ?? "You can now sign in with your new password." });
+      navigate(routes.success);
+    } catch (error) {
+      toast({ title: "Reset failed", description: error instanceof Error ? error.message : "Unable to reset the password.", variant: "destructive" });
+    } finally {
+      setIsResetting(false);
+    }
   };
 
-  const finishDemo = () => {
-    sessionStorage.removeItem("demo_reset_email");
-    sessionStorage.removeItem("demo_reset_verified");
+  const finishReset = () => {
+    setEmail("");
+    setOtp("");
+    setPassword("");
+    setConfirmPassword("");
+    setResetToken("");
     navigate("/login", { replace: true });
   };
 
   const stepNumber = { email: 1, otp: 2, reset: 3, success: 4 }[step];
+  const isBusy = isSendingOtp || isVerifyingOtp || isResetting;
 
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-[hsl(220,55%,10%)] via-[hsl(220,48%,13%)] to-[hsl(168,55%,14%)] px-4 py-10">
@@ -114,24 +176,20 @@ const ForgotPassword = () => {
               <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input id="recovery-email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} placeholder="name@institution.edu" className="h-14 w-full rounded-xl border border-slate-200 pl-11 pr-4 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" autoFocus />
             </div>
-            <button type="submit" className="mt-5 w-full rounded-xl bg-primary px-5 py-3.5 text-sm font-bold text-white hover:bg-primary/90">Send OTP</button>
+            <button type="submit" disabled={isBusy} className="mt-5 w-full rounded-xl bg-primary px-5 py-3.5 text-sm font-bold text-white hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60">{isSendingOtp ? "Sending OTP..." : "Send OTP"}</button>
           </form>
         )}
 
         {step === "otp" && (
           <form onSubmit={verifyOtp}>
             <p className="text-sm leading-6 text-slate-500">Enter the six-digit code sent to <strong className="text-slate-800">{email}</strong>.</p>
-            <div className="my-5 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-center">
-              <p className="text-xs font-bold uppercase tracking-wider text-emerald-700">Demo OTP</p>
-              <p className="mt-1 font-mono text-2xl font-extrabold tracking-[0.35em] text-emerald-800">{DEMO_OTP}</p>
-            </div>
-            <label htmlFor="recovery-otp" className="mb-2 block text-sm font-bold text-slate-700">Verification Code</label>
+            <label htmlFor="recovery-otp" className="mb-2 mt-5 block text-sm font-bold text-slate-700">Verification Code</label>
             <div className="relative">
               <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input id="recovery-otp" type="text" inputMode="numeric" maxLength={6} value={otp} onChange={(event) => setOtp(event.target.value.replace(/[^0-9]/g, ""))} placeholder="Enter 6-digit OTP" className="h-14 w-full rounded-xl border border-slate-200 pl-11 pr-4 text-center font-mono text-lg tracking-[0.25em] outline-none focus:border-primary focus:ring-2 focus:ring-primary/20" autoFocus />
             </div>
-            <button type="submit" className="mt-5 w-full rounded-xl bg-primary px-5 py-3.5 text-sm font-bold text-white hover:bg-primary/90">Verify OTP</button>
-            <button type="button" onClick={() => { setOtp(""); toast({ title: "Demo OTP resent", description: "Use 123456 to continue." }); }} className="mt-3 w-full text-sm font-bold text-primary hover:text-primary/80">Resend OTP</button>
+            <button type="submit" disabled={isBusy} className="mt-5 w-full rounded-xl bg-primary px-5 py-3.5 text-sm font-bold text-white hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60">{isVerifyingOtp ? "Verifying..." : "Verify OTP"}</button>
+            <button type="button" onClick={() => void resendOtp()} disabled={isBusy} className="mt-3 w-full text-sm font-bold text-primary hover:text-primary/80 disabled:cursor-not-allowed disabled:opacity-60">{isSendingOtp ? "Resending..." : "Resend OTP"}</button>
           </form>
         )}
 
@@ -140,7 +198,7 @@ const ForgotPassword = () => {
             <p className="text-sm leading-6 text-slate-500">Create a new password with at least eight characters.</p>
             <PasswordField label="New Password" value={password} onChange={setPassword} visible={showPassword} onToggle={() => setShowPassword((value) => !value)} />
             <PasswordField label="Confirm Password" value={confirmPassword} onChange={setConfirmPassword} visible={showConfirmPassword} onToggle={() => setShowConfirmPassword((value) => !value)} />
-            <button type="submit" className="w-full rounded-xl bg-primary px-5 py-3.5 text-sm font-bold text-white hover:bg-primary/90">Reset Password</button>
+            <button type="submit" disabled={isBusy} className="w-full rounded-xl bg-primary px-5 py-3.5 text-sm font-bold text-white hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-60">{isResetting ? "Resetting..." : "Reset Password"}</button>
           </form>
         )}
 
@@ -148,8 +206,8 @@ const ForgotPassword = () => {
           <div className="py-4 text-center">
             <span className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-emerald-50 text-emerald-600"><CheckCircle2 size={38} /></span>
             <h2 className="mt-5 text-2xl font-extrabold text-slate-950">Password Reset Complete</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-500">Your demo password was updated successfully. You can now return to sign in.</p>
-            <button type="button" onClick={finishDemo} className="mt-6 w-full rounded-xl bg-primary px-5 py-3.5 text-sm font-bold text-white hover:bg-primary/90">Back to Login</button>
+            <p className="mt-2 text-sm leading-6 text-slate-500">Your password was updated successfully. You can now return to sign in.</p>
+            <button type="button" onClick={finishReset} className="mt-6 w-full rounded-xl bg-primary px-5 py-3.5 text-sm font-bold text-white hover:bg-primary/90">Back to Login</button>
           </div>
         )}
 

@@ -14,38 +14,14 @@ import SubmitPaper from "./pages/SubmitPaper";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Admin from "./pages/Admin";
-import Editor from "./pages/Editor";
+import Editor from "./pages/EditorIntegrated";
 import Reviewer from "./pages/Reviewer";
 import UserDashboard from "./pages/UserDashboard";
+import PublicationTeam from "./pages/PublicationTeam";
+import ChiefEditor from "./pages/ChiefEditorIntegrated";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./lib/ProtectedRoute";
 import ForgotPassword from "./pages/ForgotPassword";
-import { getStoredAuthUser } from "@/lib/adminApi";
-
-const ROLE_ROUTES: Record<string, string[]> = {
-  admin: ["/admin"],
-  editor: ["/editor"],
-  "chief editor": ["/editor"],
-  reviewer: ["/reviewer"],
-  author: ["/user"],
-  "publication team": ["/admin", "/editor"],
-};
-
-const RequireAuth = ({ allowedRoles, children }: { allowedRoles: string[]; children: React.ReactNode }) => {
-  const user = getStoredAuthUser();
-  const location = useLocation();
-
-  if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
-  }
-
-  if (!allowedRoles.map((r) => r.toLowerCase()).includes(user.role.toLowerCase())) {
-    const redirectPath = ROLE_ROUTES[user.role.toLowerCase()]?.[0] ?? "/user/dashboard";
-    return <Navigate to={redirectPath} replace />;
-  }
-
-  return <>{children}</>;
-};
 
 const queryClient = new QueryClient();
 
@@ -77,24 +53,19 @@ const App = () => (
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/forgot-password/*" element={<ForgotPassword />} />
-          <Route path="/admin" element={<ProtectedRoute allowedRoles={["Admin"]} verificationPath="/api/admin/users"><Navigate to="/admin/dashboard" replace /></ProtectedRoute>} />
-          <Route path="/admin/*" element={<ProtectedRoute allowedRoles={["Admin"]} verificationPath="/api/admin/users"><Admin /></ProtectedRoute>} />
-          <Route path="/editor" element={<ProtectedRoute allowedRoles={["Editor"]} verificationPath="/api/editor/dashboard"><Navigate to="/editor/dashboard" replace /></ProtectedRoute>} />
-          <Route path="/editor/*" element={<ProtectedRoute allowedRoles={["Editor"]} verificationPath="/api/editor/dashboard"><Editor /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute allowedRoles={["Admin"]}><Navigate to="/admin/dashboard" replace /></ProtectedRoute>} />
+          <Route path="/admin/*" element={<ProtectedRoute allowedRoles={["Admin"]}><Admin /></ProtectedRoute>} />
+          <Route path="/editor" element={<ProtectedRoute allowedRoles={["Editor"]}><Navigate to="/editor/dashboard" replace /></ProtectedRoute>} />
+          <Route path="/editor/*" element={<ProtectedRoute allowedRoles={["Editor"]}><Editor /></ProtectedRoute>} />
+          <Route path="/chief-editor" element={<ProtectedRoute allowedRoles={["Chief Editor"]}><Navigate to="/chief-editor/dashboard" replace /></ProtectedRoute>} />
+          <Route path="/chief-editor/*" element={<ProtectedRoute allowedRoles={["Chief Editor"]}><ChiefEditor /></ProtectedRoute>} />
           <Route path="/reviewer" element={<ProtectedRoute allowedRoles={["Reviewer"]}><Navigate to="/reviewer/dashboard" replace /></ProtectedRoute>} />
           <Route path="/reviewer/*" element={<ProtectedRoute allowedRoles={["Reviewer"]}><Reviewer /></ProtectedRoute>} />
-          <Route path="/user-dashboard" element={<ProtectedRoute allowedRoles={["Author"]} verificationPath="/api/user/articles"><Navigate to="/user/dashboard" replace /></ProtectedRoute>} />
-          <Route path="/user" element={<ProtectedRoute allowedRoles={["Author"]} verificationPath="/api/user/articles"><Navigate to="/user/dashboard" replace /></ProtectedRoute>} />
-          <Route path="/user/*" element={<ProtectedRoute allowedRoles={["Author"]} verificationPath="/api/user/articles"><UserDashboard /></ProtectedRoute>} />
-          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="/admin/*" element={<RequireAuth allowedRoles={["admin", "publication team"]}><Admin /></RequireAuth>} />
-          <Route path="/editor" element={<Navigate to="/editor/dashboard" replace />} />
-          <Route path="/editor/*" element={<RequireAuth allowedRoles={["editor", "chief editor", "publication team"]}><Editor /></RequireAuth>} />
-          <Route path="/reviewer" element={<Navigate to="/reviewer/dashboard" replace />} />
-          <Route path="/reviewer/*" element={<RequireAuth allowedRoles={["reviewer"]}><Reviewer /></RequireAuth>} />
-          <Route path="/user-dashboard" element={<Navigate to="/user/dashboard" replace />} />
-          <Route path="/user" element={<Navigate to="/user/dashboard" replace />} />
-          <Route path="/user/*" element={<RequireAuth allowedRoles={["author", "admin", "editor", "chief editor", "reviewer", "publication team"]}><UserDashboard /></RequireAuth>} />
+          <Route path="/user-dashboard" element={<ProtectedRoute allowedRoles={["Author"]}><Navigate to="/user/dashboard" replace /></ProtectedRoute>} />
+          <Route path="/user" element={<ProtectedRoute allowedRoles={["Author"]}><Navigate to="/user/dashboard" replace /></ProtectedRoute>} />
+          <Route path="/user/*" element={<ProtectedRoute allowedRoles={["Author"]}><UserDashboard /></ProtectedRoute>} />
+          <Route path="/publication" element={<ProtectedRoute allowedRoles={["Publication Team"]}><Navigate to="/publication/dashboard" replace /></ProtectedRoute>} />
+          <Route path="/publication/*" element={<ProtectedRoute allowedRoles={["Publication Team"]}><PublicationTeam /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
